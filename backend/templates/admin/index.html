@@ -10,46 +10,44 @@
 {% block content %}
 {% get_admin_log 8 as admin_log for_user user %}
 
-<section class="mi-admin-hero">
-  <div>
-    <p class="mi-kicker">{% translate "Operations overview" %}</p>
-    <h2>{% translate "Control the platform from one calm workspace." %}</h2>
-    <p>
-      {% translate "Review content, manage scholar-facing workflows, and keep model policies visible before publishing changes." %}
-    </p>
-  </div>
-  <div class="mi-admin-hero-stats">
-    <div>
-      <span>{% translate "Publishing" %}</span>
-      <strong>12</strong>
+<div class="mi-admin-stack">
+  <section class="mi-admin-hero">
+    <div class="mi-admin-hero-copy">
+      <p class="mi-kicker">{% translate "Operations overview" %}</p>
+      <h2>{% translate "Control the platform from one calm workspace." %}</h2>
+      <p>
+        {% translate "Review content, manage scholar-facing workflows, and keep model policies visible before publishing changes." %}
+      </p>
     </div>
-    <div>
-      <span>{% translate "Escalations" %}</span>
-      <strong>6</strong>
-    </div>
-    <div>
-      <span>{% translate "Routes" %}</span>
-      <strong>3</strong>
-    </div>
-  </div>
-</section>
-
-<section class="mi-admin-layout">
-  <div class="mi-admin-main">
-    <div class="mi-section-head">
+    <div class="mi-admin-hero-stats">
       <div>
-        <p class="mi-kicker">{% translate "Applications" %}</p>
-        <h3>{% translate "Manage books, users, queues, and platform data." %}</h3>
+        <span>{% translate "Publishing" %}</span>
+        <strong>12</strong>
       </div>
-      <p>{% translate "Each section groups related models with quick actions for adding and updating records." %}</p>
+      <div>
+        <span>{% translate "Escalations" %}</span>
+        <strong>6</strong>
+      </div>
+      <div>
+        <span>{% translate "Routes" %}</span>
+        <strong>3</strong>
+      </div>
     </div>
+  </section>
 
-    <div id="content-main" class="mi-app-grid">
-      {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
+  <section class="mi-section-head">
+    <div>
+      <p class="mi-kicker">{% translate "Applications" %}</p>
+      <h3>{% translate "Manage books, users, queues, and platform data." %}</h3>
     </div>
+    <p>{% translate "Each section groups related models with quick actions for adding and updating records." %}</p>
+  </section>
+
+  <div id="content-main" class="mi-app-grid">
+    {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
   </div>
 
-  <aside class="mi-admin-side">
+  <section class="mi-admin-secondary">
     <section class="mi-side-card">
       <p class="mi-kicker">{% translate "Admin activity" %}</p>
       <h3>{% translate "Recent actions" %}</h3>
@@ -91,6 +89,6 @@
         <li>{% translate "Apply model or provider changes with release visibility." %}</li>
       </ol>
     </section>
-  </aside>
-</section>
+  </section>
+</div>
 {% endblock %}

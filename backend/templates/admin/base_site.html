@@ -12,13 +12,60 @@
 {% endblock %}
 
 {% block branding %}
-<div class="mi-branding">
-  <div>
-    <p class="mi-kicker">Maktaba Ilmiah</p>
-    <h1 id="site-name"><a href="{% url 'admin:index' %}">Control Panel</a></h1>
+<div class="mi-header-shell">
+  <div class="mi-branding">
+    <div>
+      <p class="mi-kicker">Maktaba Ilmiah</p>
+      <h1 id="site-name"><a href="{% url 'admin:index' %}">Control Panel</a></h1>
+    </div>
+    <p class="mi-brand-copy">Publishing, scholar review, provider routing, and governance in one surface.</p>
   </div>
-  <p class="mi-brand-copy">Publishing, scholar review, provider routing, and governance in one surface.</p>
 </div>
+{% endblock %}
+
+{% block usertools %}
+{% if has_permission %}
+<div class="mi-header-shell mi-header-shell-tools">
+  <div id="user-tools" class="mi-userbar">
+    <div class="mi-theme-control" aria-label="Theme controls">
+      <span class="mi-userbar-label">Theme</span>
+      <span class="mi-theme-copy">Appearance</span>
+      {% include "admin/color_theme_toggle.html" %}
+    </div>
+
+    <details class="mi-user-menu">
+      <summary class="mi-user-menu-trigger">
+        <span class="mi-user-avatar">{{ user.get_username|slice:":1"|upper }}</span>
+        <span class="mi-user-meta">
+          <span class="mi-userbar-label">Signed in</span>
+          <strong>{% firstof user.get_short_name user.get_username %}</strong>
+        </span>
+        <span class="mi-user-caret" aria-hidden="true">▾</span>
+      </summary>
+
+      <div class="mi-user-dropdown">
+        <div class="mi-user-dropdown-head">
+          <span class="mi-userbar-label">Account</span>
+          <strong>{% firstof user.get_short_name user.get_username %}</strong>
+        </div>
+
+        {% if site_url %}
+          <a class="mi-user-link" href="{{ site_url }}">عرض الموقع</a>
+        {% endif %}
+
+        {% if user.has_usable_password %}
+          <a class="mi-user-link" href="{% url 'admin:password_change' %}">غيّر كلمة المرور</a>
+        {% endif %}
+
+        <form id="logout-form" class="mi-user-logout" method="post" action="{% url 'admin:logout' %}">
+          {% csrf_token %}
+          <button type="submit">تسجيل الخروج</button>
+        </form>
+      </div>
+    </details>
+  </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block nav-global %}{% endblock %}
