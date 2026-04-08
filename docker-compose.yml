@@ -1,55 +1,124 @@
-version: '3.9'
-
 services:
   db:
     image: postgres:15
+    env_file:
+      - .env
     environment:
-      POSTGRES_DB: library_db
-      POSTGRES_USER: library_user
-      POSTGRES_PASSWORD: library_password
-    ports:
-      - "5432:5432"
+      POSTGRES_DB: ${DB_NAME:-library_db}
+      POSTGRES_USER: ${DB_USER:-library_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-change-me}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-library_user} -d ${DB_NAME:-library_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
     build: ./backend
+    env_file:
+      - .env
     command: >
-      sh -c "python manage.py migrate &&
-             python manage.py runserver 0.0.0.0:8001"
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py collectstatic --noinput &&
+             gunicorn config.wsgi:application --bind 0.0.0.0:8001 --workers 3 --timeout 120"
     environment:
-      DEBUG: 'True'
-      DJANGO_SETTINGS_MODULE: config.settings.development
-      DB_NAME: library_db
-      DB_USER: library_user
-      DB_PASSWORD: library_password
+      DEBUG: "False"
+      DJANGO_SETTINGS_MODULE: config.settings.production
       DB_HOST: db
-      DB_PORT: 5432
-      REDIS_URL: redis://redis:6379/0
+      DB_PORT: "5432"
+      REDIS_URL: redis://redis:6379/1
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
     ports:
-      - "8001:8001"
+      - "127.0.0.1:8001:8001"
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     volumes:
       - ./backend:/app
+      - backend_media:/app/media
+      - backend_static:/app/staticfiles
+    restart: unless-stopped
+
+  celery_worker:
+    build: ./backend
+    env_file:
+      - .env
+    command: celery -A config worker -l info
+    environment:
+      DEBUG: "False"
+      DJANGO_SETTINGS_MODULE: config.settings.production
+      DB_HOST: db
+      DB_PORT: "5432"
+      REDIS_URL: redis://redis:6379/1
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - backend_media:/app/media
+    restart: unless-stopped
+
+  celery_beat:
+    build: ./backend
+    env_file:
+      - .env
+    command: celery -A config beat -l info
+    environment:
+      DEBUG: "False"
+      DJANGO_SETTINGS_MODULE: config.settings.production
+      DB_HOST: db
+      DB_PORT: "5432"
+      REDIS_URL: redis://redis:6379/1
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - backend_media:/app/media
+    restart: unless-stopped
 
   frontend:
     build: ./frontend
+    env_file:
+      - .env
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8001/api/v1
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://library.digigalaxy.cloud/api/v1}
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     depends_on:
       - backend
     volumes:
       - ./frontend:/app
       - /app/node_modules
+    restart: unless-stopped
 
 volumes:
   postgres_data:
+  redis_data:
+  backend_media:
+  backend_static:

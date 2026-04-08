@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
-import './globals.css';
+import '../styles/globals.css';
 
 export const metadata: Metadata = {
-  title: 'مكتبة النحو',
-  description: 'منصة تعليمية ذكية للكتب الإسلامية والعربية',
+  title: 'Library Platform',
+  description: 'Multilingual scholarly AI learning platform for Arabic and Islamic books',
 };
 
 export default function RootLayout({
@@ -12,7 +12,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ar" dir="rtl">
+    <html lang="en" dir="ltr">
       <body>{children}</body>
     </html>
   );

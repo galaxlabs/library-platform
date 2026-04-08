@@ -75,6 +75,95 @@ docker-compose up -d
 # API Docs: http://localhost:8001/api/v1/docs/
 ```
 
+## ✅ Migration Fixes and What Was Resolved
+
+During setup we fixed several backend issues so migration could complete successfully:
+
+- Matched database settings between `backend/.env`, `backend/config/settings/development.py`, and `docker-compose.yml`
+- Ensured the database name is `library_db` and the user/password are `library_user` / `library_password`
+- Started PostgreSQL and Redis services with Docker Compose
+- Created missing app migrations for `accounts` and `institutes`
+- Resolved a circular migration dependency between `accounts.User` and `institutes.Institute` by splitting the model migrations into two phases:
+  - `institutes.0001_initial` created `Institute`, `ClassDarjah`, and `Subject`
+  - `accounts.0001_initial` created the custom `User` and `Role` models without the foreign key fields
+  - `accounts.0002_auto...` added `institute` and `class_darjah` fields to `User`
+  - `institutes.0002_auto...` added the `admin` foreign key to `Institute`
+- After these changes, `python manage.py migrate --noinput` completed successfully
+
+## 🔐 Admin Portal Login
+
+The Django admin portal is available at:
+
+- `http://localhost:8001/admin/`
+- `http://127.0.0.1:8001/admin/`
+
+Important notes:
+
+- You must create a superuser first:
+  ```bash
+  cd backend
+  source venv/bin/activate
+  python manage.py createsuperuser
+  ```
+- This project uses a custom user model with `USERNAME_FIELD = 'email'`, so login uses email and password
+- If you see login failure, check that the superuser exists and use the correct email/password pair
+- If you still cannot log in, try clearing cookies, using a private browser window, or recreating the superuser
+
+## 🌐 UI Address and 404 Explanation
+
+The backend root URL is not a homepage, so this is expected:
+
+- `http://127.0.0.1:8001/` → 404 because only `admin/`, `api/v1/`, `media/`, and `static/` are configured
+
+The actual frontend UI is served separately by Next.js at:
+
+- `http://localhost:3000/`
+
+If you want production-style access via domain and port 80, point your domain to the server IP and configure Nginx to proxy traffic to the frontend/backend ports. For example:
+
+- Server IP: `your.server.ip.address` → point DNS A record to this IP
+- UI: `http://library.digigalaxy.cloud/` → proxy to `http://localhost:3000`
+- Admin: `http://library.digigalaxy.cloud/admin/` → proxy to `http://localhost:8001/admin/`
+- API: `http://library.digigalaxy.cloud/api/v1/` → proxy to `http://localhost:8001/api/v1/`
+
+If you want the backend on port 80 directly, use Nginx reverse proxy instead of exposing Django directly. Keep the app running on `localhost:8001` and let Nginx forward public requests from port 80.
+
+### Example Nginx proxy config
+
+```nginx
+server {
+    listen 80;
+    server_name library.digigalaxy.cloud;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /admin/ {
+        proxy_pass http://127.0.0.1:8001/admin/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /api/v1/ {
+        proxy_pass http://127.0.0.1:8001/api/v1/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
 ## 📖 Documentation
 
 - [IMPLEMENTATION_ROADMAP.md](./IMPLEMENTATION_ROADMAP.md) - 30-week development plan

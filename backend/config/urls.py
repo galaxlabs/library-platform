@@ -10,7 +10,14 @@ from apps.accounts.views import RegisterView, LoginView, UserViewSet
 router = DefaultRouter()
 router.register(r'users', UserViewSet, basename='user')
 
+from django.http import HttpResponse
+
 urlpatterns = [
+    # Backend root status page
+    path('', lambda request: HttpResponse(
+        'Library Platform backend is running. Use /admin/ or /api/v1/.'
+    )),
+
     # Admin
     path('admin/', admin.site.urls),
     

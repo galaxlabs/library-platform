@@ -8,7 +8,7 @@ INSTALLED_APPS += [
     'drf_yasg',
 ]
 
-DATABASES['default']['NAME'] = 'library_db_dev'
+DATABASES['default']['NAME'] = 'library_db'
 
 CELERY_TASK_ALWAYS_EAGER = True
 
