@@ -10,19 +10,19 @@ type DashboardStudioProps = {
 
 const userHighlights = [
   {
-    title: 'Today’s Study Flow',
-    value: '4 guided blocks',
-    detail: 'Nahw lesson, verified answer review, focused practice, and a live revision queue.',
+    title: 'Today',
+    value: '4 study tasks',
+    detail: 'Read one lesson, review one answer, do practice, and finish one revision set.',
   },
   {
-    title: 'Reading Focus',
-    value: 'Sharh + Sources',
-    detail: 'Open commentary, compare passages, and keep citations visible while you study.',
+    title: 'Reading',
+    value: 'Lesson + notes',
+    detail: 'Read the main text, open notes, and keep helpful references nearby.',
   },
   {
-    title: 'Saved Evidence',
+    title: 'Saved Items',
     value: '18 passages',
-    detail: 'Collected across books, notes, and scholar-reviewed explanations for quick recall.',
+    detail: 'Your saved passages, notes, and useful answers in one place.',
   },
 ];
 
@@ -94,11 +94,11 @@ const adminWorkflow = [
 
 const userModules = [
   'My Institute',
-  'My Class / Darjah',
-  'Practice Zone',
+  'My Class',
+  'Practice',
   'Saved Questions',
-  'Reference Drawer',
-  'Revision Lists',
+  'References',
+  'Revision',
 ];
 
 const adminModules = [
@@ -122,10 +122,10 @@ export default function DashboardStudio({ mode }: DashboardStudioProps) {
         'Institute and role controls',
       ]
     : [
-        'Answer stream with citations first',
-        'Book reading and notes rail',
+        'Answer list with clear sources',
+        'Reading area with notes',
         'Practice and revision cards',
-        'Institute and class context rail',
+        'Institute and class details',
       ];
 
   return (
@@ -147,7 +147,7 @@ export default function DashboardStudio({ mode }: DashboardStudioProps) {
           <p className="mt-3 text-sm leading-7 text-slate-300">
             {isAdmin
               ? 'A modern governance workspace for moderation, model control, scholar review, and publishing.'
-              : 'A modern scholarly study workspace for reading, retrieval, evidence review, and guided practice.'}
+              : 'A simple study space for reading, practice, saved answers, and revision.'}
           </p>
         </div>
 
@@ -162,7 +162,7 @@ export default function DashboardStudio({ mode }: DashboardStudioProps) {
           >
             <div className="text-sm font-semibold">User Panel</div>
             <div className="mt-2 text-sm opacity-80">
-              Student and learner-facing study surface with books, answers, and revision flows.
+              A simple learning area for books, answers, practice, and revision.
             </div>
           </Link>
           <Link
@@ -226,17 +226,17 @@ export default function DashboardStudio({ mode }: DashboardStudioProps) {
           <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
             <div className="max-w-2xl">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">
-                {isAdmin ? 'Governance Workspace' : 'Scholarly Learning Workspace'}
+                {isAdmin ? 'Governance Workspace' : 'Learning Dashboard'}
               </p>
               <h2 className="mt-3 text-4xl font-extrabold tracking-[-0.06em] text-slate-950 md:text-5xl">
                 {isAdmin
                   ? 'A cleaner operations layout for the front admin'
-                  : 'Welcome to Maktaba Ilmiah'}
+                  : 'Welcome back'}
               </h2>
               <p className="mt-4 max-w-xl text-sm leading-7 text-slate-600 md:text-base">
                 {isAdmin
                   ? 'The admin surface now centers decisions, operational status, and release controls so the workspace feels designed instead of improvised.'
-                  : 'Designed with stronger typography, clearer reading rhythm, and a calmer panel layout for serious learners.'}
+                  : 'Continue your reading, review saved answers, and finish today’s practice in one place.'}
               </p>
             </div>
             {isAdmin ? (
@@ -266,7 +266,7 @@ export default function DashboardStudio({ mode }: DashboardStudioProps) {
                   Active Layout
                 </p>
                 <p className="mt-2 text-2xl font-bold tracking-[-0.04em] text-slate-900">
-                  Learning Studio
+                  Study Mode
                 </p>
               </div>
             )}
@@ -350,14 +350,14 @@ export default function DashboardStudio({ mode }: DashboardStudioProps) {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-                    Layout Blueprint
+                    Main Areas
                   </p>
                   <h3 className="mt-2 text-2xl font-bold tracking-[-0.04em] text-slate-950">
-                    Reading-first panel map
+                    Your study tools
                   </h3>
                 </div>
                 <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold text-white">
-                  Modern Panel
+                  User View
                 </span>
               </div>
 
@@ -375,31 +375,31 @@ export default function DashboardStudio({ mode }: DashboardStudioProps) {
 
             <div className="glass-panel rounded-[2rem] p-6">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-                Typography and Layout
+                Quick Notes
               </p>
               <div className="mt-5 space-y-4">
                 <div className="rounded-[1.4rem] bg-slate-950 p-5 text-white">
                   <p className="text-xs uppercase tracking-[0.24em] text-emerald-300">
-                    Editorial Hierarchy
+                    Reading First
                   </p>
                   <p className="mt-3 text-sm leading-7 text-slate-200">
-                    Large headings, soft panel contrast, and wider spacing make the workspace feel premium instead of utilitarian.
+                    Open your lesson, read clearly, and keep the most useful material easy to reach.
                   </p>
                 </div>
                 <div className="rounded-[1.4rem] border border-slate-200 bg-white/80 p-5">
                   <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
-                    No Django Admin Feel
+                    Saved Answers
                   </p>
                   <p className="mt-3 text-sm leading-7 text-slate-600">
-                    This panel is designed as a branded product surface for Maktaba Ilmiah, not as a default framework back office.
+                    Keep important answers and passages together so you can come back to them later.
                   </p>
                 </div>
                 <div className="rounded-[1.4rem] border border-slate-200 bg-white/80 p-5">
                   <p className="text-xs uppercase tracking-[0.24em] text-slate-500">
-                    Config-Ready Structure
+                    Daily Progress
                   </p>
                   <p className="mt-3 text-sm leading-7 text-slate-600">
-                    Modules are grouped as configurable product sections so future forms, policies, and workflows can slot in directly.
+                    Use this page to see what to read next, what to revise, and what still needs practice.
                   </p>
                 </div>
               </div>
