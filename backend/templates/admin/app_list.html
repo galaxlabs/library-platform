@@ -1,0 +1,46 @@
+{% load i18n %}
+
+{% if app_list %}
+  {% for app in app_list %}
+    <section class="mi-app-card app-{{ app.app_label }}{% if app.app_url in request.path|urlencode %} current-app{% endif %}">
+      <header class="mi-app-card-head">
+        <div>
+          <p class="mi-app-eyebrow">{% translate "Application" %}</p>
+          <h4>
+            <a href="{{ app.app_url }}" class="section" title="{% blocktranslate with name=app.name %}Models in the {{ name }} application{% endblocktranslate %}">{{ app.name }}</a>
+          </h4>
+        </div>
+        <span class="mi-app-count">{{ app.models|length }}</span>
+      </header>
+
+      <div class="mi-model-list">
+        {% for model in app.models %}
+          <article class="mi-model-row model-{{ model.object_name|lower }}{% if model.admin_url in request.path|urlencode %} current-model{% endif %}">
+            <div class="mi-model-copy">
+              {% if model.admin_url %}
+                <h5><a href="{{ model.admin_url }}"{% if model.admin_url in request.path|urlencode %} aria-current="page"{% endif %}>{{ model.name }}</a></h5>
+              {% else %}
+                <h5>{{ model.name }}</h5>
+              {% endif %}
+            </div>
+
+            <div class="mi-model-actions">
+              {% if model.add_url %}
+                <a href="{{ model.add_url }}" class="mi-chip mi-chip-muted">{% translate 'Add' %}</a>
+              {% endif %}
+              {% if model.admin_url and show_changelinks %}
+                {% if model.view_only %}
+                  <a href="{{ model.admin_url }}" class="mi-chip">{% translate 'View' %}</a>
+                {% else %}
+                  <a href="{{ model.admin_url }}" class="mi-chip">{% translate 'Change' %}</a>
+                {% endif %}
+              {% endif %}
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+  {% endfor %}
+{% else %}
+  <p class="mi-empty-state">{% translate 'You don’t have permission to view or edit anything.' %}</p>
+{% endif %}

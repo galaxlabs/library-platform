@@ -1,0 +1,32 @@
+{% extends "admin/login.html" %}
+{% load i18n static %}
+
+{% block content %}
+<div class="mi-login-shell">
+  <section class="mi-login-aside">
+    <p class="mi-kicker">{% translate "Maktaba Ilmiah" %}</p>
+    <h2>{% translate "A cleaner admin for books, review, and governance." %}</h2>
+    <p>
+      {% translate "Use this control surface to moderate content, manage scholarly workflows, and monitor publishing without the default back-office feel." %}
+    </p>
+    <div class="mi-login-points">
+      <div>
+        <strong>{% translate "Review queue" %}</strong>
+        <span>{% translate "Track pending books, answer reviews, and policy-sensitive tasks." %}</span>
+      </div>
+      <div>
+        <strong>{% translate "Provider control" %}</strong>
+        <span>{% translate "Keep model routing and platform safeguards visible." %}</span>
+      </div>
+      <div>
+        <strong>{% translate "Publishing flow" %}</strong>
+        <span>{% translate "Move from ingestion to release with clearer state and ownership." %}</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="mi-login-card">
+    {{ block.super }}
+  </section>
+</div>
+{% endblock %}

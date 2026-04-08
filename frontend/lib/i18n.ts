@@ -54,10 +54,10 @@ export type TranslationBundle = {
 
 const translations: Record<string, TranslationBundle> = {
   en: {
-    brand: 'Library Platform',
-    tagline: 'Scholarly AI learning for Arabic and Islamic books',
+    brand: 'Maktaba Ilmiah',
+    tagline: 'Welcome to Maktaba Ilmiah',
     heroBadge: 'Multi-language scholarly AI platform',
-    heroTitle: 'A learning library grounded in sources, not guesswork',
+    heroTitle: 'Welcome to Maktaba Ilmiah',
     heroDescription:
       'A production-minded platform for Arabic and Islamic books with guided ingestion, source-grounded answers, scholar review workflows, and institute-aware learning journeys.',
     featureGroundedTitle: 'Grounded Answers',
@@ -79,14 +79,14 @@ const translations: Record<string, TranslationBundle> = {
     noAccount: "Don't have an account?",
     registerTitle: 'Create a new account',
     registerPlaceholder: 'Registration form coming soon',
-    footer: '© 2026 Library Platform. All rights reserved.',
+    footer: '© 2026 Maktaba Ilmiah. All rights reserved.',
     languageLabel: 'Language',
   },
   ur: {
-    brand: 'لائبریری پلیٹ فارم',
-    tagline: 'عربی اور اسلامی کتب کے لیے علمی AI نظام',
+    brand: 'مکتبہ علمیہ',
+    tagline: 'مکتبہ علمیہ میں خوش آمدید',
     heroBadge: 'کثیر لسانی علمی AI پلیٹ فارم',
-    heroTitle: 'ایک تعلیمی لائبریری جو اندازے نہیں بلکہ مآخذ پر قائم ہے',
+    heroTitle: 'مکتبہ علمیہ میں خوش آمدید',
     heroDescription:
       'عربی اور اسلامی کتب کے لیے ایسا پلیٹ فارم جو رہنمائی شدہ انٹیک، ماخذ پر مبنی جوابات، علما کے جائزہ نظام، اور ادارہ جاتی تعلیمی سفر فراہم کرتا ہے۔',
     featureGroundedTitle: 'ماخذ پر مبنی جوابات',
@@ -108,14 +108,14 @@ const translations: Record<string, TranslationBundle> = {
     noAccount: 'اکاؤنٹ نہیں ہے؟',
     registerTitle: 'نیا اکاؤنٹ بنائیں',
     registerPlaceholder: 'رجسٹریشن فارم جلد دستیاب ہوگا',
-    footer: '© 2026 لائبریری پلیٹ فارم۔ جملہ حقوق محفوظ ہیں۔',
+    footer: '© 2026 مکتبہ علمیہ۔ جملہ حقوق محفوظ ہیں۔',
     languageLabel: 'زبان',
   },
   ar: {
-    brand: 'مكتبة النحو',
-    tagline: 'منصة تعليمية ذكية للكتب الإسلامية والعربية',
+    brand: 'مكتبة علمية',
+    tagline: 'مرحبًا بكم في مكتبة علمية',
     heroBadge: 'منصة علمية متعددة اللغات',
-    heroTitle: 'مكتبة تعليمية مبنية على المصادر لا على التخمين',
+    heroTitle: 'مرحبًا بكم في مكتبة علمية',
     heroDescription:
       'منصة إنتاجية للكتب العربية والإسلامية مع مسار رفع موجّه، وإجابات موثقة بالمصادر، وسير عمل مراجعة العلماء، وتجربة تعليمية تراعي المؤسسة.',
     featureGroundedTitle: 'إجابات موثقة',
@@ -137,12 +137,12 @@ const translations: Record<string, TranslationBundle> = {
     noAccount: 'ليس لديك حساب؟',
     registerTitle: 'إنشاء حساب جديد',
     registerPlaceholder: 'نموذج التسجيل قادم قريبًا',
-    footer: '© 2026 مكتبة النحو. جميع الحقوق محفوظة.',
+    footer: '© 2026 مكتبة علمية. جميع الحقوق محفوظة.',
     languageLabel: 'اللغة',
   },
   ru: {
-    brand: 'Библиотека знаний',
-    tagline: 'Научная AI-платформа для арабских и исламских книг',
+    brand: 'Maktaba Ilmiah',
+    tagline: 'Добро пожаловать в Maktaba Ilmiah',
     heroBadge: 'Многоязычная научная AI-платформа',
     heroTitle: 'Учебная библиотека, основанная на источниках, а не на догадках',
     heroDescription:
@@ -166,12 +166,12 @@ const translations: Record<string, TranslationBundle> = {
     noAccount: 'Нет аккаунта?',
     registerTitle: 'Создать новый аккаунт',
     registerPlaceholder: 'Форма регистрации скоро появится',
-    footer: '© 2026 Library Platform. Все права защищены.',
+    footer: '© 2026 Maktaba Ilmiah. Все права защищены.',
     languageLabel: 'Язык',
   },
   fr: {
-    brand: 'Library Platform',
-    tagline: 'Plateforme savante IA pour les livres arabes et islamiques',
+    brand: 'Maktaba Ilmiah',
+    tagline: 'Bienvenue sur Maktaba Ilmiah',
     heroBadge: 'Plateforme savante multilingue',
     heroTitle: 'Une bibliothèque d’apprentissage fondée sur les sources, pas sur l’imagination',
     heroDescription:
@@ -195,12 +195,12 @@ const translations: Record<string, TranslationBundle> = {
     noAccount: "Vous n'avez pas de compte ?",
     registerTitle: 'Créer un nouveau compte',
     registerPlaceholder: "Le formulaire d'inscription arrive bientôt",
-    footer: '© 2026 Library Platform. Tous droits réservés.',
+    footer: '© 2026 Maktaba Ilmiah. Tous droits réservés.',
     languageLabel: 'Langue',
   },
   pt: {
-    brand: 'Library Platform',
-    tagline: 'Plataforma acadêmica de IA para livros árabes e islâmicos',
+    brand: 'Maktaba Ilmiah',
+    tagline: 'Bem-vindo ao Maktaba Ilmiah',
     heroBadge: 'Plataforma acadêmica multilíngue',
     heroTitle: 'Uma biblioteca de aprendizagem baseada em fontes, não em suposições',
     heroDescription:
@@ -224,12 +224,12 @@ const translations: Record<string, TranslationBundle> = {
     noAccount: 'Não tem conta?',
     registerTitle: 'Criar nova conta',
     registerPlaceholder: 'Formulário de cadastro em breve',
-    footer: '© 2026 Library Platform. Todos os direitos reservados.',
+    footer: '© 2026 Maktaba Ilmiah. Todos os direitos reservados.',
     languageLabel: 'Idioma',
   },
   de: {
-    brand: 'Library Platform',
-    tagline: 'Wissenschaftliche KI-Plattform für arabische und islamische Bücher',
+    brand: 'Maktaba Ilmiah',
+    tagline: 'Willkommen bei Maktaba Ilmiah',
     heroBadge: 'Mehrsprachige wissenschaftliche KI-Plattform',
     heroTitle: 'Eine Lernbibliothek auf Quellenbasis statt Vermutungen',
     heroDescription:
@@ -253,7 +253,7 @@ const translations: Record<string, TranslationBundle> = {
     noAccount: 'Noch kein Konto?',
     registerTitle: 'Neues Konto erstellen',
     registerPlaceholder: 'Registrierungsformular folgt in Kürze',
-    footer: '© 2026 Library Platform. Alle Rechte vorbehalten.',
+    footer: '© 2026 Maktaba Ilmiah. Alle Rechte vorbehalten.',
     languageLabel: 'Sprache',
   },
   es: {

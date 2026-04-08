@@ -1,0 +1,96 @@
+{% extends "admin/base_site.html" %}
+{% load i18n log %}
+
+{% block bodyclass %}{{ block.super }} dashboard mi-dashboard{% endblock %}
+{% block coltype %}colM{% endblock %}
+{% block content_title %}{% endblock %}
+{% block sidebar %}{% endblock %}
+{% block nav-sidebar %}{% endblock %}
+
+{% block content %}
+{% get_admin_log 8 as admin_log for_user user %}
+
+<section class="mi-admin-hero">
+  <div>
+    <p class="mi-kicker">{% translate "Operations overview" %}</p>
+    <h2>{% translate "Control the platform from one calm workspace." %}</h2>
+    <p>
+      {% translate "Review content, manage scholar-facing workflows, and keep model policies visible before publishing changes." %}
+    </p>
+  </div>
+  <div class="mi-admin-hero-stats">
+    <div>
+      <span>{% translate "Publishing" %}</span>
+      <strong>12</strong>
+    </div>
+    <div>
+      <span>{% translate "Escalations" %}</span>
+      <strong>6</strong>
+    </div>
+    <div>
+      <span>{% translate "Routes" %}</span>
+      <strong>3</strong>
+    </div>
+  </div>
+</section>
+
+<section class="mi-admin-layout">
+  <div class="mi-admin-main">
+    <div class="mi-section-head">
+      <div>
+        <p class="mi-kicker">{% translate "Applications" %}</p>
+        <h3>{% translate "Manage books, users, queues, and platform data." %}</h3>
+      </div>
+      <p>{% translate "Each section groups related models with quick actions for adding and updating records." %}</p>
+    </div>
+
+    <div id="content-main" class="mi-app-grid">
+      {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
+    </div>
+  </div>
+
+  <aside class="mi-admin-side">
+    <section class="mi-side-card">
+      <p class="mi-kicker">{% translate "Admin activity" %}</p>
+      <h3>{% translate "Recent actions" %}</h3>
+      {% if not admin_log %}
+        <p class="mi-empty-state">{% translate "No recent actions yet." %}</p>
+      {% else %}
+        <ul class="mi-action-list">
+          {% for entry in admin_log %}
+            <li class="mi-action-item {% if entry.is_addition %}is-add{% elif entry.is_change %}is-change{% elif entry.is_deletion %}is-delete{% endif %}">
+              <span class="mi-action-badge">
+                {% if entry.is_addition %}+{% elif entry.is_change %}~{% else %}-{% endif %}
+              </span>
+              <div>
+                {% if entry.is_deletion or not entry.get_admin_url %}
+                  <strong>{{ entry.object_repr }}</strong>
+                {% else %}
+                  <strong><a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a></strong>
+                {% endif %}
+                <span>
+                  {% if entry.content_type %}
+                    {% filter capfirst %}{{ entry.content_type.name }}{% endfilter %}
+                  {% else %}
+                    {% translate 'Unknown content' %}
+                  {% endif %}
+                </span>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </section>
+
+    <section class="mi-side-card">
+      <p class="mi-kicker">{% translate "Workflow" %}</p>
+      <h3>{% translate "Suggested admin rhythm" %}</h3>
+      <ol class="mi-flow-list">
+        <li>{% translate "Check publishing queues before making policy changes." %}</li>
+        <li>{% translate "Review escalations and moderation items together." %}</li>
+        <li>{% translate "Apply model or provider changes with release visibility." %}</li>
+      </ol>
+    </section>
+  </aside>
+</section>
+{% endblock %}

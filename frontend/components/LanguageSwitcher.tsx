@@ -23,8 +23,8 @@ export default function LanguageSwitcher({
       : normalizedPath;
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <span className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
+    <div className="glass-panel inline-flex max-w-full flex-wrap items-center gap-2 rounded-[1.75rem] px-3 py-3">
+      <span className="px-2 text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-500">
         {label}
       </span>
       {locales.map((locale) => {
@@ -39,10 +39,10 @@ export default function LanguageSwitcher({
           <Link
             key={locale.code}
             href={href}
-            className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+            className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
               active
-                ? 'border-emerald-400 bg-emerald-400/10 text-emerald-300'
-                : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'
+                ? 'border-emerald-700/20 bg-emerald-900 text-emerald-50 shadow-lg shadow-emerald-950/15'
+                : 'border-slate-300/70 bg-white/70 text-slate-600 hover:border-slate-400 hover:bg-white'
             }`}
           >
             {locale.nativeLabel}

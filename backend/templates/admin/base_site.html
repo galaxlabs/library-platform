@@ -1,0 +1,24 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | Maktaba Ilmiah Control{% endblock %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Naskh+Arabic:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'admin/css/custom-admin.css' %}">
+{% endblock %}
+
+{% block branding %}
+<div class="mi-branding">
+  <div>
+    <p class="mi-kicker">Maktaba Ilmiah</p>
+    <h1 id="site-name"><a href="{% url 'admin:index' %}">Control Panel</a></h1>
+  </div>
+  <p class="mi-brand-copy">Publishing, scholar review, provider routing, and governance in one surface.</p>
+</div>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

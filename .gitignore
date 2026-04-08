@@ -10,6 +10,7 @@ ENV/
 *.egg-info/
 dist/
 build/
+staticfiles_host/
 
 # Django
 *.db
@@ -49,3 +50,7 @@ logs/
 # Misc
 .DS_Store
 Thumbs.db
+.env
+.env.local
+.env.*.local
+*.env

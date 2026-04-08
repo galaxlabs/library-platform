@@ -12,10 +12,14 @@ router.register(r'users', UserViewSet, basename='user')
 
 from django.http import HttpResponse
 
+admin.site.site_header = 'Maktaba Ilmiah'
+admin.site.site_title = 'Maktaba Ilmiah Admin'
+admin.site.index_title = 'Maktaba Ilmiah Control Panel'
+
 urlpatterns = [
     # Backend root status page
     path('', lambda request: HttpResponse(
-        'Library Platform backend is running. Use /admin/ or /api/v1/.'
+        'Maktaba Ilmiah backend is running. Use /admin/ or /api/v1/.'
     )),
 
     # Admin
