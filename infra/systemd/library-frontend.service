@@ -1,0 +1,12 @@
+[Unit]
+Description=Library Platform Next.js Frontend
+After=network.target
+
+[Service]
+User=library-user
+WorkingDirectory=/home/library-user/library-platform/frontend
+Environment="PATH=/home/library-user/.nvm/versions/node/*/bin:$PATH"
+ExecStart=/usr/bin/npm start
+
+[Install]
+WantedBy=multi-user.target

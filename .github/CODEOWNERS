@@ -1,0 +1,9 @@
+# Default code owners for the repository.
+# Replace @galaxlabs with the actual GitHub organization or user handle.
+
+* @galaxlabs
+/backend/ @galaxlabs
+/frontend/ @galaxlabs
+
+# Add additional owners for specific directories if needed
+# /infra/ @galaxlabs

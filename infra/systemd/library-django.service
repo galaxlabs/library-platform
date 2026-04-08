@@ -1,0 +1,12 @@
+[Unit]
+Description=Library Platform Django Service
+After=network.target
+
+[Service]
+User=library-user
+WorkingDirectory=/home/library-user/library-platform/backend
+Environment="PATH=/home/library-user/venv/bin"
+ExecStart=/home/library-user/venv/bin/gunicorn config.wsgi:application --bind 127.0.0.1:8001
+
+[Install]
+WantedBy=multi-user.target

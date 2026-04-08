@@ -1,0 +1,12 @@
+from .base import *
+
+DEBUG = False
+ALLOWED_HOSTS = ['library.digigalaxy.cloud']
+
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_HTTPONLY = True
+
+DATABASES['default']['ATOMIC_REQUESTS'] = True

@@ -1,0 +1,12 @@
+[Unit]
+Description=Library Platform Celery Worker
+After=network.target
+
+[Service]
+User=library-user
+WorkingDirectory=/home/library-user/library-platform/backend
+Environment="PATH=/home/library-user/venv/bin"
+ExecStart=/home/library-user/venv/bin/celery -A config worker -l info
+
+[Install]
+WantedBy=multi-user.target
