@@ -20,7 +20,16 @@ html[dir="rtl"] body,
 [dir="rtl"] input,
 [dir="rtl"] select,
 [dir="rtl"] textarea {
-  font-family: "Noto Naskh Arabic", "Manrope", serif;
+  font-family: "Jameel Noori Nastaleeq", "Noto Nastaliq Urdu", "Noto Naskh Arabic", "Manrope", serif;
+}
+
+html[dir="rtl"] input,
+html[dir="rtl"] select,
+html[dir="rtl"] textarea,
+[dir="rtl"] input,
+[dir="rtl"] select,
+[dir="rtl"] textarea {
+  font-family: "Noto Naskh Arabic", "Manrope", sans-serif;
 }
 
 :root {
