@@ -5,13 +5,14 @@ type PanelShellProps = {
   title: string;
   eyebrow: string;
   description: string;
-  active: 'dashboard' | 'admin-panel';
+  active: 'dashboard' | 'admin-panel' | 'chat';
   children: ReactNode;
 };
 
 const links = [
   { href: '/', label: 'Home', key: null },
   { href: '/dashboard', label: 'User Dashboard', key: 'dashboard' },
+  { href: '/chat', label: 'Ask AI', key: 'chat' },
   { href: '/admin-panel', label: 'Admin Panel', key: 'admin-panel' },
 ] as const;
 
@@ -69,7 +70,7 @@ export default function PanelShell({
                   Surface
                 </p>
                 <p className="mt-2 text-xl font-bold tracking-[-0.05em] text-slate-950">
-                  {active === 'admin-panel' ? 'Control' : 'Study'}
+                  {active === 'admin-panel' ? 'Control' : active === 'chat' ? 'Chat' : 'Study'}
                 </p>
               </div>
             </div>

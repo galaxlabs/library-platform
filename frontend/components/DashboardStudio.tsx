@@ -152,6 +152,17 @@ export default function DashboardStudio({ mode }: DashboardStudioProps) {
         </div>
 
         <div className="mt-6 grid gap-3">
+          {!isAdmin ? (
+            <Link
+              href="/chat"
+              className="rounded-[1.3rem] border border-sky-200 bg-sky-50 px-4 py-4 text-left text-slate-800 transition hover:bg-sky-100"
+            >
+              <div className="text-sm font-semibold">Ask AI</div>
+              <div className="mt-2 text-sm opacity-80">
+                Open the study chat to ask questions and read source-based answers.
+              </div>
+            </Link>
+          ) : null}
           <Link
             href="/dashboard"
             className={`rounded-[1.3rem] border px-4 py-4 text-left transition ${

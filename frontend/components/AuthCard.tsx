@@ -82,81 +82,128 @@ export function LoginCard({
   const registerHref =
     locale === defaultLocale ? '/register' : `/${locale}/register`;
 
+  const roleLineByLocale: Record<string, string> = {
+    en: 'For students, learners, scholars, and institutions',
+    ar: 'للطلبة والمتعلمين والعلماء والمؤسسات',
+    ur: 'طلبہ، سیکھنے والوں، علما اور اداروں کے لیے',
+  };
+
+  const roleLine = roleLineByLocale[locale] ?? roleLineByLocale.en;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4">
-      <div className="mx-auto flex min-h-screen w-full max-w-md items-center">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(183,121,51,0.14),transparent_24%),radial-gradient(circle_at_top_right,rgba(29,107,87,0.12),transparent_22%),linear-gradient(180deg,#f7f2e8_0%,#f3ecdf_50%,#efe7d8_100%)] px-4 py-8">
+      <div className="mx-auto flex min-h-screen w-full max-w-6xl items-center">
         <div className="w-full">
           <div className="mb-6 flex justify-center">
             <LanguageSwitcher currentLocale={locale} label={copy.languageLabel} />
           </div>
-          <div className="mb-8 text-center">
-            <h1 className="mb-2 text-3xl font-bold text-gray-900">{copy.brand}</h1>
-            <p className="text-gray-600">{copy.tagline}</p>
-          </div>
+          <div className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
+            <section className="rounded-[2rem] bg-[linear-gradient(145deg,#172033_0%,#1f5f57_55%,#d48d3f_140%)] p-8 text-white shadow-[0_30px_80px_rgba(40,32,18,0.18)] md:p-10">
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-emerald-200">
+                {copy.brand}
+              </p>
+              <h1 className="mt-4 max-w-xl text-4xl font-extrabold tracking-[-0.06em] md:text-6xl">
+                {copy.signIn}
+              </h1>
+              <p className="mt-5 max-w-2xl text-base leading-8 text-slate-200 md:text-lg">
+                {copy.tagline}
+              </p>
+              <p className="mt-4 text-sm font-medium text-amber-100/90">
+                {roleLine}
+              </p>
 
-          <div className="space-y-6 rounded-xl bg-white p-8 shadow-lg">
-            {error && (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-                <p className="text-sm text-red-700">{error}</p>
+              <div className="mt-10 grid gap-4 md:grid-cols-3">
+                <div className="rounded-[1.4rem] border border-white/10 bg-white/10 p-5 backdrop-blur">
+                  <p className="text-sm font-semibold text-white">Students</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-200">
+                    Read lessons, save answers, and follow revision work.
+                  </p>
+                </div>
+                <div className="rounded-[1.4rem] border border-white/10 bg-white/10 p-5 backdrop-blur">
+                  <p className="text-sm font-semibold text-white">Scholars</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-200">
+                    Review knowledge, check references, and guide learning.
+                  </p>
+                </div>
+                <div className="rounded-[1.4rem] border border-white/10 bg-white/10 p-5 backdrop-blur">
+                  <p className="text-sm font-semibold text-white">Institutions</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-200">
+                    Manage classes, books, and trusted study workflows.
+                  </p>
+                </div>
               </div>
-            )}
+            </section>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700">
-                  {copy.emailLabel}
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  required
-                  placeholder="you@example.com"
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 outline-none transition focus:border-transparent focus:ring-2 focus:ring-blue-500"
-                />
+            <section className="rounded-[2rem] border border-white/60 bg-white/85 p-8 shadow-[0_28px_70px_rgba(40,32,18,0.12)] backdrop-blur md:p-10">
+              <div className="mb-8">
+                <h2 className="text-3xl font-bold tracking-[-0.05em] text-slate-950">
+                  {copy.signIn}
+                </h2>
+                <p className="mt-3 text-base leading-7 text-slate-600">
+                  Use your email and password to open your learning space.
+                </p>
               </div>
 
-              <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700">
-                  {copy.passwordLabel}
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  required
-                  placeholder="••••••••"
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 outline-none transition focus:border-transparent focus:ring-2 focus:ring-blue-500"
-                />
+              {error && (
+                <div className="mb-6 rounded-[1.2rem] border border-red-200 bg-red-50 px-4 py-4">
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <label className="mb-3 block text-sm font-semibold text-slate-700">
+                    {copy.emailLabel}
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    required
+                    placeholder="you@example.com"
+                    className="h-14 w-full rounded-[1.15rem] border border-slate-200 bg-[rgba(250,248,242,0.9)] px-5 text-base text-slate-900 outline-none transition focus:border-transparent focus:ring-2 focus:ring-emerald-700"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-3 block text-sm font-semibold text-slate-700">
+                    {copy.passwordLabel}
+                  </label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    required
+                    placeholder="••••••••"
+                    className="h-14 w-full rounded-[1.15rem] border border-slate-200 bg-[rgba(250,248,242,0.9)] px-5 text-base text-slate-900 outline-none transition focus:border-transparent focus:ring-2 focus:ring-emerald-700"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="h-14 w-full rounded-[1.15rem] bg-slate-950 px-5 text-base font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {loading ? copy.loadingLogin : copy.signIn}
+                </button>
+              </form>
+
+              <div className="my-8 flex items-center gap-4">
+                <div className="h-px flex-1 bg-slate-200"></div>
+                <span className="text-sm font-medium text-slate-500">{copy.or}</span>
+                <div className="h-px flex-1 bg-slate-200"></div>
               </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-lg bg-blue-600 px-4 py-2 font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {loading ? copy.loadingLogin : copy.signIn}
-              </button>
-            </form>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
+              <div className="text-center">
+                <p className="mb-4 text-sm text-slate-600">{copy.noAccount}</p>
+                <Link
+                  href={registerHref}
+                  className="inline-flex min-h-[3.25rem] items-center justify-center rounded-[1.15rem] bg-[rgba(247,244,238,0.95)] px-6 text-base font-semibold text-slate-900 ring-1 ring-slate-200 transition hover:bg-white"
+                >
+                  {copy.createAccount}
+                </Link>
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="bg-white px-2 text-gray-500">{copy.or}</span>
-              </div>
-            </div>
-
-            <div className="text-center">
-              <p className="mb-3 text-sm text-gray-600">{copy.noAccount}</p>
-              <Link
-                href={registerHref}
-                className="inline-block rounded-lg bg-gray-100 px-6 py-2 font-medium text-gray-900 transition hover:bg-gray-200"
-              >
-                {copy.createAccount}
-              </Link>
-            </div>
+            </section>
           </div>
 
           <p className="mt-6 text-center text-xs text-gray-600">{copy.footer}</p>
@@ -227,6 +274,12 @@ export function RegisterCard({
   };
 
   const labels = labelsByLocale[locale] ?? labelsByLocale.en;
+  const roleLineByLocale: Record<string, string> = {
+    en: 'For students, learners, scholars, and institutions',
+    ar: 'للطلبة والمتعلمين والعلماء والمؤسسات',
+    ur: 'طلبہ، سیکھنے والوں، علما اور اداروں کے لیے',
+  };
+  const roleLine = roleLineByLocale[locale] ?? roleLineByLocale.en;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -265,28 +318,69 @@ export function RegisterCard({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4">
-      <div className="mx-auto flex min-h-screen w-full max-w-xl items-center">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(183,121,51,0.14),transparent_24%),radial-gradient(circle_at_top_right,rgba(29,107,87,0.12),transparent_22%),linear-gradient(180deg,#f7f2e8_0%,#f3ecdf_50%,#efe7d8_100%)] px-4 py-8">
+      <div className="mx-auto flex min-h-screen w-full max-w-7xl items-center">
         <div className="w-full">
           <div className="mb-6 flex justify-center">
             <LanguageSwitcher currentLocale={locale} label={copy.languageLabel} />
           </div>
-          <div className="mb-8 text-center">
-            <h1 className="mb-2 text-3xl font-bold text-gray-900">{copy.brand}</h1>
-            <p className="text-gray-600">{copy.registerTitle}</p>
-          </div>
+          <div className="grid gap-6 xl:grid-cols-[1.04fr_0.96fr]">
+            <section className="rounded-[2rem] bg-[linear-gradient(145deg,#172033_0%,#1f5f57_55%,#d48d3f_140%)] p-8 text-white shadow-[0_30px_80px_rgba(40,32,18,0.18)] md:p-10">
+              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-emerald-200">
+                {copy.brand}
+              </p>
+              <h1 className="mt-4 max-w-2xl text-4xl font-extrabold tracking-[-0.06em] md:text-6xl">
+                {copy.registerTitle}
+              </h1>
+              <p className="mt-5 max-w-2xl text-base leading-8 text-slate-200 md:text-lg">
+                Create your account and start using the study space, saved answers, and chat tools.
+              </p>
+              <p className="mt-4 text-sm font-medium text-amber-100/90">
+                {roleLine}
+              </p>
 
-          <div className="space-y-6 rounded-xl bg-white p-8 shadow-lg">
-            {error && (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-                <p className="text-sm text-red-700">{error}</p>
+              <div className="mt-10 grid gap-4 md:grid-cols-3">
+                <div className="rounded-[1.4rem] border border-white/10 bg-white/10 p-5 backdrop-blur">
+                  <p className="text-sm font-semibold text-white">Learners</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-200">
+                    Keep your reading, practice, and saved answers together.
+                  </p>
+                </div>
+                <div className="rounded-[1.4rem] border border-white/10 bg-white/10 p-5 backdrop-blur">
+                  <p className="text-sm font-semibold text-white">Scholars</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-200">
+                    Use one account to read, review, and respond with context.
+                  </p>
+                </div>
+                <div className="rounded-[1.4rem] border border-white/10 bg-white/10 p-5 backdrop-blur">
+                  <p className="text-sm font-semibold text-white">Institutions</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-200">
+                    Organize users, learning paths, and trusted study content.
+                  </p>
+                </div>
               </div>
-            )}
+            </section>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <section className="rounded-[2rem] border border-white/60 bg-white/88 p-8 shadow-[0_28px_70px_rgba(40,32,18,0.12)] backdrop-blur md:p-10">
+              <div className="mb-8">
+                <h2 className="text-3xl font-bold tracking-[-0.05em] text-slate-950">
+                  {copy.createAccount}
+                </h2>
+                <p className="mt-3 text-base leading-7 text-slate-600">
+                  Enter your details below to create a new account.
+                </p>
+              </div>
+
+              {error && (
+                <div className="mb-6 rounded-[1.2rem] border border-red-200 bg-red-50 px-4 py-4">
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid gap-5 md:grid-cols-2">
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
+                  <label className="mb-3 block text-sm font-semibold text-slate-700">
                     {labels.fullName}
                   </label>
                   <input
@@ -294,26 +388,26 @@ export function RegisterCard({
                     value={fullName}
                     onChange={(event) => setFullName(event.target.value)}
                     required
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 outline-none transition focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                    className="h-14 w-full rounded-[1.15rem] border border-slate-200 bg-[rgba(250,248,242,0.9)] px-5 text-base text-slate-900 outline-none transition focus:border-transparent focus:ring-2 focus:ring-emerald-700"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
+                  <label className="mb-3 block text-sm font-semibold text-slate-700">
                     {labels.arabicName}
                   </label>
                   <input
                     type="text"
                     value={arabicName}
                     onChange={(event) => setArabicName(event.target.value)}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 outline-none transition focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                    className="h-14 w-full rounded-[1.15rem] border border-slate-200 bg-[rgba(250,248,242,0.9)] px-5 text-base text-slate-900 outline-none transition focus:border-transparent focus:ring-2 focus:ring-emerald-700"
                   />
                 </div>
               </div>
 
               <div className="grid gap-5 md:grid-cols-2">
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
+                  <label className="mb-3 block text-sm font-semibold text-slate-700">
                     {copy.emailLabel}
                   </label>
                   <input
@@ -322,31 +416,31 @@ export function RegisterCard({
                     onChange={(event) => setEmail(event.target.value)}
                     required
                     placeholder="you@example.com"
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 outline-none transition focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                    className="h-14 w-full rounded-[1.15rem] border border-slate-200 bg-[rgba(250,248,242,0.9)] px-5 text-base text-slate-900 outline-none transition focus:border-transparent focus:ring-2 focus:ring-emerald-700"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
+                  <label className="mb-3 block text-sm font-semibold text-slate-700">
                     {labels.phone}
                   </label>
                   <input
                     type="text"
                     value={phone}
                     onChange={(event) => setPhone(event.target.value)}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 outline-none transition focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                    className="h-14 w-full rounded-[1.15rem] border border-slate-200 bg-[rgba(250,248,242,0.9)] px-5 text-base text-slate-900 outline-none transition focus:border-transparent focus:ring-2 focus:ring-emerald-700"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700">
+                <label className="mb-3 block text-sm font-semibold text-slate-700">
                   {labels.preferredLanguage}
                 </label>
                 <select
                   value={preferredLangPair}
                   onChange={(event) => setPreferredLangPair(event.target.value)}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 outline-none transition focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                  className="h-14 w-full rounded-[1.15rem] border border-slate-200 bg-[rgba(250,248,242,0.9)] px-5 text-base text-slate-900 outline-none transition focus:border-transparent focus:ring-2 focus:ring-emerald-700"
                 >
                   <option value="ar-en">{labels.arabicEnglish}</option>
                   <option value="ar-ur">{labels.arabicUrdu}</option>
@@ -355,7 +449,7 @@ export function RegisterCard({
 
               <div className="grid gap-5 md:grid-cols-2">
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
+                  <label className="mb-3 block text-sm font-semibold text-slate-700">
                     {copy.passwordLabel}
                   </label>
                   <input
@@ -364,12 +458,12 @@ export function RegisterCard({
                     onChange={(event) => setPassword(event.target.value)}
                     required
                     placeholder="••••••••"
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 outline-none transition focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                    className="h-14 w-full rounded-[1.15rem] border border-slate-200 bg-[rgba(250,248,242,0.9)] px-5 text-base text-slate-900 outline-none transition focus:border-transparent focus:ring-2 focus:ring-emerald-700"
                   />
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
+                  <label className="mb-3 block text-sm font-semibold text-slate-700">
                     {labels.passwordConfirm}
                   </label>
                   <input
@@ -378,7 +472,7 @@ export function RegisterCard({
                     onChange={(event) => setPasswordConfirm(event.target.value)}
                     required
                     placeholder="••••••••"
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 outline-none transition focus:border-transparent focus:ring-2 focus:ring-blue-500"
+                    className="h-14 w-full rounded-[1.15rem] border border-slate-200 bg-[rgba(250,248,242,0.9)] px-5 text-base text-slate-900 outline-none transition focus:border-transparent focus:ring-2 focus:ring-emerald-700"
                   />
                 </div>
               </div>
@@ -386,21 +480,28 @@ export function RegisterCard({
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-lg bg-blue-600 px-4 py-2 font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                className="h-14 w-full rounded-[1.15rem] bg-slate-950 px-5 text-base font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {loading ? labels.signingUp : copy.createAccount}
               </button>
             </form>
 
-            <div className="text-center">
-              <p className="mb-3 text-sm text-gray-600">{labels.haveAccount}</p>
-              <Link
-                href={loginHref}
-                className="inline-block rounded-lg bg-gray-100 px-6 py-2 font-medium text-gray-900 transition hover:bg-gray-200"
-              >
-                {copy.signIn}
-              </Link>
-            </div>
+              <div className="my-8 flex items-center gap-4">
+                <div className="h-px flex-1 bg-slate-200"></div>
+                <span className="text-sm font-medium text-slate-500">{copy.or}</span>
+                <div className="h-px flex-1 bg-slate-200"></div>
+              </div>
+
+              <div className="text-center">
+                <p className="mb-4 text-sm text-slate-600">{labels.haveAccount}</p>
+                <Link
+                  href={loginHref}
+                  className="inline-flex min-h-[3.25rem] items-center justify-center rounded-[1.15rem] bg-[rgba(247,244,238,0.95)] px-6 text-base font-semibold text-slate-900 ring-1 ring-slate-200 transition hover:bg-white"
+                >
+                  {copy.signIn}
+                </Link>
+              </div>
+            </section>
           </div>
 
           <p className="mt-6 text-center text-xs text-gray-600">{copy.footer}</p>

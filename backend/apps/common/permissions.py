@@ -1,5 +1,28 @@
 from rest_framework import permissions
-from django.contrib.auth.models import AnonymousUser
+
+
+def get_active_memberships(user):
+    if not user or not user.is_authenticated:
+        return user.__class__.objects.none() if hasattr(user.__class__, "objects") else []
+    return user.institute_memberships.filter(is_active=True).select_related(
+        "institute",
+        "class_darjah",
+    )
+
+
+def has_institute_role(user, institute=None, roles=None):
+    if not user or not user.is_authenticated:
+        return False
+    if user.is_staff or user.is_superuser:
+        return True
+
+    roles = set(roles or [])
+    memberships = get_active_memberships(user)
+    if institute is not None:
+        memberships = memberships.filter(institute=institute)
+    if roles:
+        memberships = memberships.filter(role__in=roles)
+    return memberships.exists()
 
 
 class IsAdmin(permissions.BasePermission):
@@ -11,11 +34,12 @@ class IsAdmin(permissions.BasePermission):
 
 class IsScholar(permissions.BasePermission):
     """Allow access only to verified scholars."""
-    
+
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        return hasattr(request.user, 'scholar') and request.user.scholar.verification_status == 'verified'
+        profile = getattr(request.user, 'scholar_profile', None)
+        return bool(profile and profile.verification_status == 'verified')
 
 
 class IsInstituteAdmin(permissions.BasePermission):
@@ -24,7 +48,11 @@ class IsInstituteAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        return request.user.institute and request.user.roles.filter(name='Institute Admin').exists()
+        return has_institute_role(
+            request.user,
+            institute=getattr(request.user, 'institute', None),
+            roles={'platform_admin', 'institute_admin'},
+        )
 
 
 class IsTeacher(permissions.BasePermission):
@@ -33,7 +61,7 @@ class IsTeacher(permissions.BasePermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        return request.user.roles.filter(name='Teacher').exists()
+        return has_institute_role(request.user, roles={'teacher'})
 
 
 class IsStudent(permissions.BasePermission):
@@ -42,7 +70,7 @@ class IsStudent(permissions.BasePermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        return request.user.roles.filter(name='Student').exists()
+        return has_institute_role(request.user, roles={'student'})
 
 
 class IsInstituteAdminOrReadOnly(permissions.BasePermission):
@@ -58,10 +86,13 @@ class IsInstituteAdminOrReadOnly(permissions.BasePermission):
         # Read permission for authenticated users
         if request.method in permissions.SAFE_METHODS:
             return True
-        
-        # Write permission only for institute admins of that institute
+
         if hasattr(obj, 'institute'):
-            return obj.institute == request.user.institute
+            return has_institute_role(
+                request.user,
+                institute=obj.institute,
+                roles={'platform_admin', 'institute_admin'},
+            )
         return False
 
 
@@ -78,10 +109,11 @@ class IsScholarOrReadOnly(permissions.BasePermission):
         # Read permission for all authenticated users
         if request.method in permissions.SAFE_METHODS:
             return True
-        
+
         # Write permission for scholars
-        if hasattr(request.user, 'scholar'):
-            return request.user.scholar.verification_status == 'verified'
+        profile = getattr(request.user, 'scholar_profile', None)
+        if profile:
+            return profile.verification_status == 'verified'
         return False
 
 
@@ -98,3 +130,13 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
         
         # Write only if owner
         return obj.user == request.user
+
+
+class IsPlatformAdmin(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return bool(request.user and request.user.is_authenticated and (request.user.is_staff or request.user.is_superuser))
+
+
+class IsInstituteMember(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return bool(request.user and request.user.is_authenticated and get_active_memberships(request.user).exists())

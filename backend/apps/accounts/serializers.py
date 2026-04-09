@@ -12,11 +12,15 @@ class RoleSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     roles = RoleSerializer(many=True, read_only=True)
+    public_id = serializers.UUIDField(read_only=True)
+    institute_name = serializers.CharField(source='institute.name', read_only=True)
+    class_darjah_name = serializers.CharField(source='class_darjah.name', read_only=True)
 
     class Meta:
         model = User
         fields = [
             'id',
+            'public_id',
             'email',
             'full_name',
             'arabic_name',
@@ -24,7 +28,9 @@ class UserSerializer(serializers.ModelSerializer):
             'roles',
             'preferred_lang_pair',
             'institute',
+            'institute_name',
             'class_darjah',
+            'class_darjah_name',
             'date_joined',
         ]
         read_only_fields = ['id', 'date_joined']
@@ -78,3 +84,15 @@ class LoginSerializer(serializers.Serializer):
 
         attrs['user'] = user
         return attrs
+
+
+class MeSerializer(UserSerializer):
+    membership_roles = serializers.SerializerMethodField()
+
+    class Meta(UserSerializer.Meta):
+        fields = UserSerializer.Meta.fields + ['membership_roles']
+
+    def get_membership_roles(self, obj):
+        return list(
+            obj.institute_memberships.filter(is_active=True).values_list('role', flat=True).distinct()
+        )
