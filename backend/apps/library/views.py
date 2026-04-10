@@ -1,8 +1,8 @@
 from django.db.models import Count, Q
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, status
+from rest_framework.response import Response
 
-from apps.common.permissions import has_institute_role
-from apps.institutes.models import Institute
+from apps.analytics.services import track_event
 
 from .models import Book, BookChunk, BookFile, BookReference
 from .selectors import visible_books_queryset, visible_chunks_queryset
@@ -59,6 +59,22 @@ class BookListCreateView(generics.ListCreateAPIView):
         if review_status:
             queryset = queryset.filter(review_status=review_status)
         return queryset
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        book = serializer.save()
+        track_event(
+            'book_created',
+            user=request.user,
+            payload={
+                'book_public_id': str(book.public_id),
+                'visibility': book.visibility,
+                'review_status': book.review_status,
+            },
+        )
+        output = BookDetailSerializer(book, context=self.get_serializer_context()).data
+        return Response(output, status=status.HTTP_201_CREATED)
 
 
 class BookDetailView(generics.RetrieveAPIView):

@@ -1,4 +1,3 @@
-from django.db.models import Count
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -13,15 +12,38 @@ class DashboardCountersView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        counters = {
-            'my_books': Book.objects.filter(uploaded_by=request.user).count(),
-            'recent_books': Book.objects.filter(uploaded_by=request.user).order_by('-created_at')[:5].values(
+        recent_books = list(
+            Book.objects.filter(uploaded_by=request.user).order_by('-created_at')[:5].values(
                 'title',
                 'public_id',
                 'review_status',
-            ),
+                'visibility',
+            )
+        )
+        recent_jobs = list(
+            UploadSession.objects.filter(initiated_by=request.user).order_by('-created_at')[:5].values(
+                'public_id',
+                'status',
+                'current_stage',
+                'book__title',
+            )
+        )
+        recent_queries = list(
+            Query.objects.filter(user=request.user).order_by('-created_at')[:5].values(
+                'public_id',
+                'question',
+                'detected_subject',
+                'search_scope',
+            )
+        )
+        counters = {
+            'my_books': Book.objects.filter(uploaded_by=request.user).count(),
+            'recent_books': recent_books,
             'ingestion_jobs': UploadSession.objects.filter(initiated_by=request.user).count(),
-            'recent_queries': Query.objects.filter(user=request.user).count(),
+            'recent_ingestion_jobs': recent_jobs,
+            'recent_queries_count': Query.objects.filter(user=request.user).count(),
+            'recent_queries': recent_queries,
+            'institutes_count': request.user.institute_memberships.filter(is_active=True).count(),
             'scholar_profile': None,
         }
         scholar = getattr(request.user, 'scholar_profile', None)

@@ -3,6 +3,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.common.models import BaseModel
+from .managers import CustomUserManager
 
 
 class Role(models.Model):
@@ -44,6 +45,7 @@ class User(AbstractUser, BaseModel):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['full_name']
+    objects = CustomUserManager()
 
     def __str__(self):
         return self.full_name or self.username

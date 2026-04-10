@@ -1,3 +1,5 @@
+import os
+
 from .base import *
 
 DEBUG = True
@@ -9,6 +11,12 @@ INSTALLED_APPS += [
 ]
 
 DATABASES['default']['NAME'] = 'library_db'
+
+if os.getenv('PYTEST_CURRENT_TEST'):
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'test_db.sqlite3',
+    }
 
 CELERY_TASK_ALWAYS_EAGER = True
 

@@ -11,6 +11,7 @@ ENV/
 dist/
 build/
 staticfiles_host/
+staticfiles/
 
 # Django
 *.db

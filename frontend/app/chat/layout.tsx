@@ -7,7 +7,7 @@ export default function ChatLayout({
 }) {
   return (
     <PanelShell
-      active="dashboard"
+      active="chat"
       eyebrow="Maktaba Ilmiah"
       title="Ask AI"
       description="Ask simple study questions, read source-based answers, and keep your recent chat history in one place."

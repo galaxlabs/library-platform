@@ -1,5 +1,5 @@
 [Unit]
-Description=Library Platform Celery Worker
+Description=Library Platform Celery Beat
 After=network.target redis-server.service
 Wants=redis-server.service
 
@@ -10,7 +10,7 @@ Group=fg
 WorkingDirectory=/home/fg/library-platform/backend
 EnvironmentFile=/home/fg/library-platform/backend/.env
 Environment=DJANGO_SETTINGS_MODULE=config.settings.production
-ExecStart=/home/fg/library-platform/backend/venv/bin/celery -A config worker -l info
+ExecStart=/home/fg/library-platform/backend/venv/bin/celery -A config beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
 Restart=always
 RestartSec=5
 

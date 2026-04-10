@@ -4,6 +4,7 @@ import os
 from dataclasses import dataclass
 
 import requests
+from requests import RequestException
 
 from .models import AIProvider
 
@@ -38,6 +39,11 @@ class BaseProviderAdapter:
     def health_check(self) -> dict:
         raise NotImplementedError
 
+    def _wrap_request_error(self, exc: Exception) -> ProviderError:
+        if isinstance(exc, RequestException):
+            return ProviderError(f'{self.provider.provider_type} request failed: {exc.__class__.__name__}')
+        return ProviderError(str(exc))
+
 
 class GeminiAdapter(BaseProviderAdapter):
     def _url(self, suffix: str):
@@ -46,14 +52,17 @@ class GeminiAdapter(BaseProviderAdapter):
 
     def query(self, prompt: str, context: dict | None = None) -> dict:
         url = self._url(f'/models/{self.provider.model_name or "gemini-1.5-flash"}:generateContent')
-        response = requests.post(
-            url,
-            params={'key': self.provider.api_key},
-            json={'contents': [{'parts': [{'text': prompt}]}]},
-            timeout=self.timeout,
-        )
-        response.raise_for_status()
-        data = response.json()
+        try:
+            response = requests.post(
+                url,
+                params={'key': self.provider.api_key},
+                json={'contents': [{'parts': [{'text': prompt}]}]},
+                timeout=self.timeout,
+            )
+            response.raise_for_status()
+            data = response.json()
+        except Exception as exc:
+            raise self._wrap_request_error(exc) from exc
         text = ''
         candidates = data.get('candidates') or []
         if candidates:
@@ -68,14 +77,17 @@ class GeminiAdapter(BaseProviderAdapter):
 
     def embed(self, text: str) -> dict:
         url = self._url('/models/text-embedding-004:embedContent')
-        response = requests.post(
-            url,
-            params={'key': self.provider.api_key},
-            json={'content': {'parts': [{'text': text}]}},
-            timeout=self.timeout,
-        )
-        response.raise_for_status()
-        data = response.json()
+        try:
+            response = requests.post(
+                url,
+                params={'key': self.provider.api_key},
+                json={'content': {'parts': [{'text': text}]}},
+                timeout=self.timeout,
+            )
+            response.raise_for_status()
+            data = response.json()
+        except Exception as exc:
+            raise self._wrap_request_error(exc) from exc
         return {'embedding': data.get('embedding', {}).get('values', []), 'raw': data}
 
     def health_check(self) -> dict:
@@ -95,17 +107,20 @@ class OpenRouterAdapter(BaseProviderAdapter):
 
     def query(self, prompt: str, context: dict | None = None) -> dict:
         url = f'{self.provider.base_url or "https://openrouter.ai/api/v1"}/chat/completions'
-        response = requests.post(
-            url,
-            headers=self._headers(),
-            json={
-                'model': self.provider.model_name or 'openai/gpt-4o-mini',
-                'messages': [{'role': 'user', 'content': prompt}],
-            },
-            timeout=self.timeout,
-        )
-        response.raise_for_status()
-        data = response.json()
+        try:
+            response = requests.post(
+                url,
+                headers=self._headers(),
+                json={
+                    'model': self.provider.model_name or 'openai/gpt-4o-mini',
+                    'messages': [{'role': 'user', 'content': prompt}],
+                },
+                timeout=self.timeout,
+            )
+            response.raise_for_status()
+            data = response.json()
+        except Exception as exc:
+            raise self._wrap_request_error(exc) from exc
         choices = data.get('choices') or []
         text = choices[0].get('message', {}).get('content', '') if choices else ''
         return {
@@ -117,17 +132,20 @@ class OpenRouterAdapter(BaseProviderAdapter):
 
     def embed(self, text: str) -> dict:
         url = f'{self.provider.base_url or "https://openrouter.ai/api/v1"}/embeddings'
-        response = requests.post(
-            url,
-            headers=self._headers(),
-            json={
-                'model': self.provider.model_name or 'text-embedding-3-small',
-                'input': text,
-            },
-            timeout=self.timeout,
-        )
-        response.raise_for_status()
-        data = response.json()
+        try:
+            response = requests.post(
+                url,
+                headers=self._headers(),
+                json={
+                    'model': self.provider.model_name or 'text-embedding-3-small',
+                    'input': text,
+                },
+                timeout=self.timeout,
+            )
+            response.raise_for_status()
+            data = response.json()
+        except Exception as exc:
+            raise self._wrap_request_error(exc) from exc
         embedding = data.get('data', [{}])[0].get('embedding', [])
         return {'embedding': embedding, 'raw': data}
 
@@ -142,17 +160,20 @@ class OpenRouterAdapter(BaseProviderAdapter):
 class OllamaAdapter(BaseProviderAdapter):
     def query(self, prompt: str, context: dict | None = None) -> dict:
         url = f'{self.provider.base_url or "http://127.0.0.1:11434"}/api/generate'
-        response = requests.post(
-            url,
-            json={
-                'model': self.provider.model_name or 'llama3.1',
-                'prompt': prompt,
-                'stream': False,
-            },
-            timeout=self.timeout,
-        )
-        response.raise_for_status()
-        data = response.json()
+        try:
+            response = requests.post(
+                url,
+                json={
+                    'model': self.provider.model_name or 'llama3.1',
+                    'prompt': prompt,
+                    'stream': False,
+                },
+                timeout=self.timeout,
+            )
+            response.raise_for_status()
+            data = response.json()
+        except Exception as exc:
+            raise self._wrap_request_error(exc) from exc
         return {
             'response': data.get('response', ''),
             'provider': 'ollama',
@@ -162,13 +183,16 @@ class OllamaAdapter(BaseProviderAdapter):
 
     def embed(self, text: str) -> dict:
         url = f'{self.provider.base_url or "http://127.0.0.1:11434"}/api/embeddings'
-        response = requests.post(
-            url,
-            json={'model': self.provider.model_name or 'nomic-embed-text', 'prompt': text},
-            timeout=self.timeout,
-        )
-        response.raise_for_status()
-        data = response.json()
+        try:
+            response = requests.post(
+                url,
+                json={'model': self.provider.model_name or 'nomic-embed-text', 'prompt': text},
+                timeout=self.timeout,
+            )
+            response.raise_for_status()
+            data = response.json()
+        except Exception as exc:
+            raise self._wrap_request_error(exc) from exc
         return {'embedding': data.get('embedding', []), 'raw': data}
 
     def health_check(self) -> dict:

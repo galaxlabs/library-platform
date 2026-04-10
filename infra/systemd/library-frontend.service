@@ -3,10 +3,15 @@ Description=Library Platform Next.js Frontend
 After=network.target
 
 [Service]
-User=library-user
-WorkingDirectory=/home/library-user/library-platform/frontend
-Environment="PATH=/home/library-user/.nvm/versions/node/*/bin:$PATH"
-ExecStart=/usr/bin/npm start
+Type=simple
+User=fg
+Group=fg
+WorkingDirectory=/home/fg/library-platform/frontend
+EnvironmentFile=/home/fg/library-platform/frontend/.env
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/npm run start -- --hostname 127.0.0.1 --port 3000
+Restart=always
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target

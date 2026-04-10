@@ -1,18 +1,26 @@
+'use client';
+
 import Link from 'next/link';
 import { ReactNode } from 'react';
+
+import { useAuth } from '../contexts/AuthContext';
 
 type PanelShellProps = {
   title: string;
   eyebrow: string;
   description: string;
-  active: 'dashboard' | 'admin-panel' | 'chat';
+  active: 'dashboard' | 'admin-panel' | 'chat' | 'library' | 'upload' | 'scholars' | 'institutes';
   children: ReactNode;
 };
 
 const links = [
   { href: '/', label: 'Home', key: null },
   { href: '/dashboard', label: 'User Dashboard', key: 'dashboard' },
+  { href: '/library', label: 'Library', key: 'library' },
+  { href: '/upload', label: 'Upload', key: 'upload' },
   { href: '/chat', label: 'Ask AI', key: 'chat' },
+  { href: '/scholars', label: 'Scholar', key: 'scholars' },
+  { href: '/institutes/my', label: 'Institute', key: 'institutes' },
   { href: '/admin-panel', label: 'Admin Panel', key: 'admin-panel' },
 ] as const;
 
@@ -23,6 +31,8 @@ export default function PanelShell({
   active,
   children,
 }: PanelShellProps) {
+  const { user, isAuthenticated, logout } = useAuth();
+
   return (
     <main className="app-shell min-h-screen px-4 py-4 md:px-8 md:py-6 lg:px-10">
       <div className="mx-auto max-w-7xl">
@@ -65,13 +75,30 @@ export default function PanelShell({
                 </div>
               </div>
 
-              <div className="rounded-[1.5rem] border border-white/70 bg-white/65 px-4 py-4 text-right shadow-[0_18px_36px_rgba(54,43,24,0.08)] backdrop-blur sm:min-w-[140px]">
+              <div className="rounded-[1.5rem] border border-white/70 bg-white/65 px-4 py-4 text-right shadow-[0_18px_36px_rgba(54,43,24,0.08)] backdrop-blur sm:min-w-[200px]">
                 <p className="hero-kicker text-[10px] font-semibold text-slate-500">
-                  Surface
+                  {isAuthenticated ? 'Signed In' : 'Surface'}
                 </p>
-                <p className="mt-2 text-xl font-bold tracking-[-0.05em] text-slate-950">
-                  {active === 'admin-panel' ? 'Control' : active === 'chat' ? 'Chat' : 'Study'}
-                </p>
+                {isAuthenticated && user ? (
+                  <>
+                    <p className="mt-2 text-lg font-bold tracking-[-0.05em] text-slate-950">
+                      {user.full_name}
+                    </p>
+                    <div className="mt-3 flex items-center justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={logout}
+                        className="rounded-full bg-slate-950 px-3 py-1.5 text-xs font-semibold text-white"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <p className="mt-2 text-xl font-bold tracking-[-0.05em] text-slate-950">
+                    {active === 'admin-panel' ? 'Control' : active === 'chat' ? 'Chat' : 'Study'}
+                  </p>
+                )}
               </div>
             </div>
           </div>

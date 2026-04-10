@@ -57,10 +57,10 @@ class AIProvider(BaseModel):
         encryption_key = os.getenv('ENCRYPTION_KEY')
         if not encryption_key:
             return self.api_key
-        cipher_suite = Fernet(encryption_key.encode())
         try:
+            cipher_suite = Fernet(encryption_key.encode())
             return cipher_suite.decrypt(self.api_key.encode()).decode()
-        except (InvalidToken, ValueError):
+        except (InvalidToken, ValueError, TypeError):
             return self.api_key
 
     def encrypt_key(self, key):
@@ -68,5 +68,8 @@ class AIProvider(BaseModel):
         if not encryption_key:
             self.api_key = key
             return
-        cipher_suite = Fernet(encryption_key.encode())
-        self.api_key = cipher_suite.encrypt(key.encode()).decode()
+        try:
+            cipher_suite = Fernet(encryption_key.encode())
+            self.api_key = cipher_suite.encrypt(key.encode()).decode()
+        except (ValueError, TypeError):
+            self.api_key = key

@@ -2,7 +2,7 @@ from django.db.models import Count, Q
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 
-from apps.common.permissions import has_institute_role
+from apps.common.permissions import can_access_institute, can_manage_institute
 
 from .models import (
     ClassDarjah,
@@ -32,11 +32,7 @@ class InstituteScopedMixin:
             | Q(admin=self.request.user)
         ).distinct()
 
-
-class InstituteListView(InstituteScopedMixin, generics.ListAPIView):
-    serializer_class = InstituteSerializer
-
-    def get_queryset(self):
+    def _visible_institutes(self):
         queryset = Institute.objects.filter(is_active=True).annotate(
             memberships_count=Count('memberships', filter=Q(memberships__is_active=True))
         )
@@ -44,16 +40,23 @@ class InstituteListView(InstituteScopedMixin, generics.ListAPIView):
             return queryset
         return queryset.filter(
             Q(id__in=self._user_institutes().values('id'))
-            | Q(books__visibility='public')
+            | Q(books__visibility='public', books__public=True)
         ).distinct()
+
+
+class InstituteListView(InstituteScopedMixin, generics.ListAPIView):
+    serializer_class = InstituteSerializer
+
+    def get_queryset(self):
+        return self._visible_institutes()
 
 
 class InstituteDetailView(InstituteScopedMixin, generics.RetrieveAPIView):
     serializer_class = InstituteSerializer
     lookup_field = 'public_id'
-    queryset = Institute.objects.filter(is_active=True).annotate(
-        memberships_count=Count('memberships', filter=Q(memberships__is_active=True))
-    )
+
+    def get_queryset(self):
+        return self._visible_institutes()
 
 
 class InstituteMembershipListView(InstituteScopedMixin, generics.ListAPIView):
@@ -74,11 +77,7 @@ class InstituteMembershipListView(InstituteScopedMixin, generics.ListAPIView):
 
         if institute_id:
             institute = Institute.objects.filter(public_id=institute_id).first()
-            if institute and has_institute_role(
-                self.request.user,
-                institute=institute,
-                roles={'platform_admin', 'institute_admin'},
-            ):
+            if institute and can_manage_institute(self.request.user, institute):
                 return queryset
 
         return queryset.filter(user=self.request.user)
@@ -94,16 +93,18 @@ class ClassDarjahListView(InstituteScopedMixin, generics.ListAPIView):
             queryset = queryset.filter(institute__public_id=institute_id)
         if self.request.user.is_staff or self.request.user.is_superuser:
             return queryset
-        return queryset.filter(
-            Q(institute__memberships__user=self.request.user, institute__memberships__is_active=True)
-            | Q(institute__admin=self.request.user)
-        ).distinct()
+        return queryset.filter(institute_id__in=self._visible_institutes().values('id')).distinct()
 
 
 class ClassDarjahDetailView(InstituteScopedMixin, generics.RetrieveAPIView):
     serializer_class = ClassDarjahSerializer
     lookup_field = 'public_id'
-    queryset = ClassDarjah.objects.select_related('institute')
+
+    def get_queryset(self):
+        queryset = ClassDarjah.objects.select_related('institute')
+        if self.request.user.is_staff or self.request.user.is_superuser:
+            return queryset
+        return queryset.filter(institute_id__in=self._visible_institutes().values('id'))
 
 
 class InstituteSubjectListView(InstituteScopedMixin, generics.ListAPIView):
@@ -116,16 +117,18 @@ class InstituteSubjectListView(InstituteScopedMixin, generics.ListAPIView):
             queryset = queryset.filter(institute__public_id=institute_id)
         if self.request.user.is_staff or self.request.user.is_superuser:
             return queryset
-        return queryset.filter(
-            Q(institute__memberships__user=self.request.user, institute__memberships__is_active=True)
-            | Q(institute__admin=self.request.user)
-        ).distinct()
+        return queryset.filter(institute_id__in=self._visible_institutes().values('id')).distinct()
 
 
 class InstituteSubjectDetailView(InstituteScopedMixin, generics.RetrieveAPIView):
     serializer_class = InstituteSubjectSerializer
     lookup_field = 'public_id'
-    queryset = InstituteSubject.objects.select_related('institute', 'subject', 'class_darjah')
+
+    def get_queryset(self):
+        queryset = InstituteSubject.objects.select_related('institute', 'subject', 'class_darjah')
+        if self.request.user.is_staff or self.request.user.is_superuser:
+            return queryset
+        return queryset.filter(institute_id__in=self._visible_institutes().values('id'))
 
 
 class InstitutePrivateLibraryAccessListView(InstituteScopedMixin, generics.ListAPIView):
@@ -141,7 +144,4 @@ class InstitutePrivateLibraryAccessListView(InstituteScopedMixin, generics.ListA
             queryset = queryset.filter(institute__public_id=institute_id)
         if self.request.user.is_staff or self.request.user.is_superuser:
             return queryset
-        return queryset.filter(
-            Q(institute__memberships__user=self.request.user, institute__memberships__is_active=True)
-            | Q(institute__admin=self.request.user)
-        ).distinct()
+        return queryset.filter(institute_id__in=self._user_institutes().values('id')).distinct()

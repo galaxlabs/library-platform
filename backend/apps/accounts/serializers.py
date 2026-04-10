@@ -14,7 +14,9 @@ class UserSerializer(serializers.ModelSerializer):
     roles = RoleSerializer(many=True, read_only=True)
     public_id = serializers.UUIDField(read_only=True)
     institute_name = serializers.CharField(source='institute.name', read_only=True)
+    institute_public_id = serializers.UUIDField(source='institute.public_id', read_only=True)
     class_darjah_name = serializers.CharField(source='class_darjah.name', read_only=True)
+    class_darjah_public_id = serializers.UUIDField(source='class_darjah.public_id', read_only=True)
 
     class Meta:
         model = User
@@ -29,11 +31,13 @@ class UserSerializer(serializers.ModelSerializer):
             'preferred_lang_pair',
             'institute',
             'institute_name',
+            'institute_public_id',
             'class_darjah',
             'class_darjah_name',
+            'class_darjah_public_id',
             'date_joined',
         ]
-        read_only_fields = ['id', 'date_joined']
+        read_only_fields = fields
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -60,7 +64,8 @@ class RegisterSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data.pop('password_confirm')
         password = validated_data.pop('password')
-        email = validated_data['email']
+        email = validated_data['email'].lower().strip()
+        validated_data['email'] = email
         user = User.objects.create_user(username=email, **validated_data)
         user.set_password(password)
         user.save()
@@ -76,7 +81,7 @@ class LoginSerializer(serializers.Serializer):
         password = attrs.get('password')
 
         if email and password:
-            user = authenticate(username=email, password=password)
+            user = authenticate(username=email.lower().strip(), password=password)
             if not user:
                 raise serializers.ValidationError('Invalid credentials.')
         else:

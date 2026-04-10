@@ -1,255 +1,200 @@
 # Deployment Guide
 
-## Prerequisites
+This app must stay separate from the VPS’s existing Frappe / bench runtime. Do not place it inside bench, do not proxy it through bench, and do not reuse Frappe services.
 
-- Ubuntu 20.04+ server
-- Python 3.11+
-- Node.js 18+
-- PostgreSQL 14+
-- Redis 6+
-- Nginx 1.18+
+## Target
 
-## System Setup
+- host: `72.60.118.195`
+- domain: `library.digigalaxy.cloud`
+- repo path: `/home/fg/library-platform`
+- backend: Django + Gunicorn + Celery + Redis + PostgreSQL
+- frontend: Next.js production server
+- reverse proxy: Nginx
 
-### 1. Create System User
-
-```bash
-sudo useradd -m -s /bin/bash library-user
-sudo usermod -aG sudo library-user
-```
-
-### 2. Install Dependencies
+## 1. System Packages
 
 ```bash
 sudo apt update
 sudo apt install -y \
-  python3.11 \
-  python3.11-dev \
-  python3.11-venv \
-  postgresql \
-  postgresql-contrib \
+  python3.11 python3.11-venv python3.11-dev \
+  postgresql postgresql-contrib \
   redis-server \
   nginx \
-  git \
-  curl \
-  wget
+  build-essential \
+  git curl
 ```
 
-### 3. Database Setup
+Install Node.js 20 LTS if it is not already present.
+
+## 2. PostgreSQL
 
 ```bash
-sudo -u postgres psql << EOF
+sudo -u postgres psql
 CREATE DATABASE library_db;
-CREATE USER library_user WITH PASSWORD 'strong-password';
-ALTER ROLE library_user SET client_encoding TO 'utf8';
-ALTER ROLE library_user SET default_transaction_isolation TO 'read committed';
-ALTER ROLE library_user SET default_transaction_deferrable TO on;
-ALTER ROLE library_user SET timezone TO 'UTC';
+CREATE USER library_user WITH PASSWORD 'change-me';
 GRANT ALL PRIVILEGES ON DATABASE library_db TO library_user;
 \q
-EOF
 ```
 
-### 4. Redis Setup
+## 3. Backend Setup
 
 ```bash
-sudo systemctl enable redis-server
-sudo systemctl start redis-server
-redis-cli ping  # Should return PONG
-```
-
-## Backend Deployment
-
-### 1. Clone Repository
-
-```bash
-su - library-user
-git clone https://github.com/your-org/library-platform.git
-cd library-platform
-```
-
-### 2. Setup Python Environment
-
-```bash
-cd backend
-python3.11 -m venv /home/library-user/venv
-source /home/library-user/venv/bin/activate
+cd /home/fg/library-platform/backend
+python3.11 -m venv venv
+source venv/bin/activate
 pip install --upgrade pip setuptools wheel
 pip install -r requirements.txt
-```
-
-### 3. Environment Configuration
-
-```bash
 cp .env.example .env
-# Edit .env with production settings
-nano .env
 ```
 
-Key settings:
-```
+Set at minimum in `/home/fg/library-platform/backend/.env`:
+
+```env
 DEBUG=False
-DJANGO_SECRET_KEY=your-secret-key-here
-ALLOWED_HOSTS=library.digigalaxy.cloud
+DJANGO_SECRET_KEY=replace-with-a-long-random-secret
+ALLOWED_HOSTS=localhost,127.0.0.1,72.60.118.195,library.digigalaxy.cloud
+CORS_ALLOWED_ORIGINS=http://localhost:3000,https://library.digigalaxy.cloud
+CSRF_TRUSTED_ORIGINS=https://library.digigalaxy.cloud
 DB_NAME=library_db
 DB_USER=library_user
-DB_PASSWORD=your-db-password
+DB_PASSWORD=replace-me
 DB_HOST=localhost
 DB_PORT=5432
+REDIS_URL=redis://localhost:6379/0
+CELERY_BROKER_URL=redis://localhost:6379/0
+CELERY_RESULT_BACKEND=redis://localhost:6379/0
+STATIC_ROOT=/home/fg/library-platform/backend/staticfiles
+MEDIA_ROOT=/home/fg/library-platform/backend/media
 ```
 
-### 4. Database Migrations
+Then run:
 
 ```bash
+source /home/fg/library-platform/backend/venv/bin/activate
+cd /home/fg/library-platform/backend
 python manage.py migrate
-python manage.py createsuperuser
 python manage.py collectstatic --noinput
+python manage.py createsuperuser
 ```
 
-### 5. Gunicorn Setup
+## 4. Frontend Setup
 
 ```bash
-sudo cp /home/library-user/library-platform/infra/systemd/library-django.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable library-django
-sudo systemctl start library-django
-sudo systemctl status library-django
-```
-
-### 6. Celery Setup
-
-```bash
-sudo cp /home/library-user/library-platform/infra/systemd/library-celery.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable library-celery
-sudo systemctl start library-celery
-```
-
-## Frontend Deployment
-
-### 1. Setup Node Environment
-
-```bash
-su - library-user
-cd library-platform/frontend
-```
-
-### 2. Build Frontend
-
-```bash
+cd /home/fg/library-platform/frontend
+cp .env.example .env
 npm install
 npm run build
 ```
 
-### 3. Systemd Service
+Set in `/home/fg/library-platform/frontend/.env`:
+
+```env
+NEXT_PUBLIC_API_URL=https://library.digigalaxy.cloud/api/v1
+NEXT_PUBLIC_APP_NAME=Maktaba Ilmiah
+```
+
+## 5. systemd Services
+
+Copy the provided units:
 
 ```bash
-sudo cp /home/library-user/library-platform/infra/systemd/library-frontend.service /etc/systemd/system/
+sudo cp /home/fg/library-platform/infra/systemd/library-backend.service /etc/systemd/system/
+sudo cp /home/fg/library-platform/infra/systemd/library-celery.service /etc/systemd/system/
+sudo cp /home/fg/library-platform/infra/systemd/library-celerybeat.service /etc/systemd/system/
+sudo cp /home/fg/library-platform/infra/systemd/library-frontend.service /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable library-frontend
-sudo systemctl start library-frontend
+sudo systemctl enable library-backend library-celery library-celerybeat library-frontend
+sudo systemctl restart library-backend library-celery library-celerybeat library-frontend
 ```
 
-## Nginx Configuration
-
-### 1. Copy Nginx Config
+Useful checks:
 
 ```bash
-sudo cp /home/library-user/library-platform/infra/nginx/library.conf /etc/nginx/sites-available/library.conf
-sudo ln -s /etc/nginx/sites-available/library.conf /etc/nginx/sites-enabled/
+sudo systemctl status library-backend
+sudo systemctl status library-celery
+sudo systemctl status library-celerybeat
+sudo systemctl status library-frontend
 ```
 
-### 2. SSL Certificates with Certbot
+## 6. Nginx
+
+Install the site config without disturbing the existing bench config. Use a dedicated server block for `library.digigalaxy.cloud` only.
 
 ```bash
-sudo apt install certbot python3-certbot-nginx
-sudo certbot certonly --nginx -d library.digigalaxy.cloud
-```
-
-### 3. Verify and Restart Nginx
-
-```bash
+sudo cp /home/fg/library-platform/infra/nginx/library-platform.conf /etc/nginx/sites-available/library-platform.conf
+sudo ln -sf /etc/nginx/sites-available/library-platform.conf /etc/nginx/sites-enabled/library-platform.conf
 sudo nginx -t
-sudo systemctl restart nginx
+sudo systemctl reload nginx
 ```
 
-## Monitoring & Logs
+The provided template:
 
-### View Logs
+- proxies `/` to Next.js on `127.0.0.1:3000`
+- proxies `/api/` and `/admin/` to Django on `127.0.0.1:8001`
+- serves `/static/` and `/media/` from `/home/fg/library-platform/backend`
+- allows larger PDF uploads
+
+## 7. SSL
 
 ```bash
-sudo journalctl -u library-django -f
+sudo apt install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d library.digigalaxy.cloud
+```
+
+## 8. Local Run Commands
+
+Backend:
+
+```bash
+cd /home/fg/library-platform/backend
+source venv/bin/activate
+python manage.py runserver 0.0.0.0:8001
+```
+
+Celery worker:
+
+```bash
+cd /home/fg/library-platform/backend
+source venv/bin/activate
+celery -A config worker -l info
+```
+
+Frontend:
+
+```bash
+cd /home/fg/library-platform/frontend
+npm run dev
+```
+
+## 9. Logs
+
+```bash
+sudo journalctl -u library-backend -f
 sudo journalctl -u library-celery -f
+sudo journalctl -u library-celerybeat -f
 sudo journalctl -u library-frontend -f
 ```
 
-### Nginx Logs
+## 10. Deployment Notes
+
+- keep this app outside bench
+- do not edit Frappe’s Nginx server blocks to host this app indirectly
+- if Nginx already serves other domains, only add the dedicated `library.digigalaxy.cloud` block
+- rebuild the frontend after UI changes:
 
 ```bash
-sudo tail -f /var/log/nginx/library_access.log
-sudo tail -f /var/log/nginx/library_error.log
-```
-
-## Backup
-
-### Database Backup
-
-```bash
-sudo -u postgres pg_dump library_db > library_db_backup_$(date +%Y%m%d).sql
-```
-
-### Automated Daily Backups
-
-```bash
-crontab -e
-# Add: 0 2 * * * sudo -u postgres pg_dump library_db > /backups/library_db_$(date +\%Y\%m\%d).sql
-```
-
-## Troubleshooting
-
-### Check Service Status
-
-```bash
-sudo systemctl status library-django
-sudo systemctl status library-celery
-sudo systemctl status library-frontend
-sudo systemctl status nginx
-```
-
-### Restart Services
-
-```bash
-sudo systemctl restart library-django
-sudo systemctl restart library-celery
+cd /home/fg/library-platform/frontend
+npm run build
 sudo systemctl restart library-frontend
 ```
 
-### Check Connectivity
+- after backend code or dependency changes:
 
 ```bash
-curl http://localhost:8001/api/v1/health/  # Backend
-curl http://localhost:3000  # Frontend
+cd /home/fg/library-platform/backend
+source venv/bin/activate
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py collectstatic --noinput
+sudo systemctl restart library-backend library-celery library-celerybeat
 ```
-
-## Security Hardening
-
-1. Configure firewall (UFW):
-```bash
-sudo ufw allow 22/tcp
-sudo ufw allow 80/tcp
-sudo ufw allow 443/tcp
-sudo ufw enable
-```
-
-2. Disable root SSH login
-3. Use SSH keys only (no passwords)
-4. Keep system updated: `sudo apt update && sudo apt upgrade -y`
-5. Regular security audits
-
-## Performance Tuning
-
-- Increase Gunicorn workers: `--workers=4`
-- Configure PostgreSQL for production load
-- Enable Redis persistence
-- Implement CDN for static assets  
-- Use database connection pooling

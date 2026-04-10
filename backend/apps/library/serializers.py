@@ -163,8 +163,8 @@ class BookCreateSerializer(serializers.ModelSerializer):
         required=False,
         allow_null=True,
     )
-    metadata_identity = serializers.JSONField(write_only=True, required=False, default=dict)
-    metadata_classification = serializers.JSONField(write_only=True, required=False, default=dict)
+    metadata_identity = serializers.JSONField(write_only=True, required=True)
+    metadata_classification = serializers.JSONField(write_only=True, required=True)
     metadata_structure_hints = serializers.JSONField(write_only=True, required=False, default=dict)
 
     class Meta:
@@ -210,6 +210,8 @@ class BookCreateSerializer(serializers.ModelSerializer):
             attrs['institute'] = request.user.institute
         if visibility == 'institute' and not attrs.get('institute'):
             raise serializers.ValidationError({'institute': 'Institute visibility requires an institute.'})
+        if attrs.get('visibility') == 'public':
+            attrs['public'] = True
         return attrs
 
     def create(self, validated_data):

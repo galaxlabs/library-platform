@@ -6,6 +6,8 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from apps.analytics.services import track_event
+
 from .models import User
 from .serializers import MeSerializer, UserSerializer, RegisterSerializer, LoginSerializer
 
@@ -18,6 +20,7 @@ class RegisterView(APIView):
         if serializer.is_valid():
             user = serializer.save()
             refresh = RefreshToken.for_user(user)
+            track_event('auth_register', user=user, payload={'user_public_id': str(user.public_id)})
             return Response({
                 'user': UserSerializer(user).data,
                 'tokens': {
@@ -36,6 +39,7 @@ class LoginView(APIView):
         if serializer.is_valid():
             user = serializer.validated_data['user']
             refresh = RefreshToken.for_user(user)
+            track_event('auth_login', user=user, payload={'user_public_id': str(user.public_id)})
             return Response({
                 'user': UserSerializer(user).data,
                 'tokens': {
@@ -47,9 +51,13 @@ class LoginView(APIView):
 
 
 class UserViewSet(ModelViewSet):
-    queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        if self.request.user.is_staff or self.request.user.is_superuser:
+            return User.objects.all()
+        return User.objects.filter(pk=self.request.user.pk)
 
     @action(detail=False, methods=['get'])
     def me(self, request):

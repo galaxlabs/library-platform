@@ -2,139 +2,75 @@
 
 Date: 2026-04-09
 
-## Implementation Order
+## Order Of Work
 
-1. Stabilize shared backend foundations
-2. Complete backend v1 runtime by app
-3. Wire frontend to the real APIs
-4. Consolidate VPS deployment/runtime config
-5. Add tests for critical flows
-6. Update runbooks and environment templates
+1. stabilize shared backend behavior and API contracts
+2. finish the remaining backend runtime seams
+3. wire the frontend to live backend flows
+4. consolidate deployment/runtime assets for the `/home/fg` VPS target
+5. add critical tests and run local validation
 
-## Step 1: Shared backend foundations
+## Concrete Work Items
 
-- Add shared permission helpers for:
-  - platform admin
-  - institute admin
-  - scholar
-  - institute-scoped access
-- Add shared queryset scoping helpers where practical.
-- Add a consistent DRF exception shape.
-- Add lightweight audit/event logging helpers usage in new flows.
+### 1. Shared backend stabilization
 
-## Step 2: Accounts
+- tighten shared permission helpers around institute access and institute management
+- make account serialization safer for non-admin users
+- keep `/api/v1/accounts/me/` as the frontend identity source
+- improve provider resolution to use the user’s active institute context more reliably
+- expand analytics payloads so the dashboard can be live instead of static
 
-- Keep existing register/login behavior.
-- Add:
-  - `/api/v1/accounts/me/`
-  - JWT refresh support verification
-  - safer serializers for public account reads
+### 2. Domain runtime completion
 
-## Step 3: Institutes
+- preserve current institute, library, ingestion, knowledge, skill, scholar, Q&A, and provider APIs where already present
+- add missing runtime seams rather than redesigning:
+  - scholar review queue basics
+  - mandatory library metadata input
+  - explicit upload-to-queued ingestion handoff
+  - event logging on critical create actions
+- keep ingestion honest for OCR-unready PDFs
 
-- Add serializers, views, and routes for:
-  - institute list/detail
-  - memberships
-  - classes/darjahs
-  - institute subjects
-  - private library access basics
-- Apply role-aware scoping:
-  - public authenticated reads where safe
-  - institute admin write controls
-  - institute member visibility rules
+### 3. Frontend wiring
 
-## Step 4: Scholars
-
-- Add runtime for:
-  - scholar profile read/update
-  - verification application submission
-  - scholar review list/create
-  - support/object/revise basics
-- Keep scholar verification and moderation states visible and explicit.
-
-## Step 5: Library
-
-- Add runtime for:
-  - book list/detail/create
-  - book file list
-  - chunk/reference list
-  - search and filters
-  - visibility scoping for public/private/institute content
-- Make the metadata form mandatory in create flow.
-
-## Step 6: Ingestion
-
-- Add upload-session serializers, service layer, routes, and Celery tasks.
-- Implement lifecycle:
-  - uploaded
-  - metadata_pending
-  - queued
-  - processing
-  - review_pending
-  - published
-  - failed
-- Implement safe extraction policy:
-  - extract text when feasible
-  - mark scanned PDFs as `OCR_PENDING`
-  - never fabricate OCR output
-
-## Step 7: Knowledge and skills
-
-- Add book-linked knowledge object runtime.
-- Add topic-map listing.
-- Add skill pack list/detail with draft vs active review state.
-
-## Step 8: Grounded Q&A
-
-- Add service-layer flow:
-  - classify question
-  - retrieve visible chunks from DB
-  - select skill pack if relevant
-  - build structured response
-  - log query/answer/source provenance
-- Return safe insufficient-support responses when evidence is weak.
-
-## Step 9: AI providers
-
-- Move runtime logic out of `models.py` into service/adapters files.
-- Implement adapters for:
-  - Gemini
-  - OpenRouter
-  - Ollama
-- Implement selection hierarchy:
-  - user
-  - institute
-  - system
-  - env fallback for system defaults
-- Add health-check endpoint.
-
-## Step 10: Frontend
-
-- Add auth provider and route guards.
-- Replace static dashboard content with live data.
-- Add product routes for:
-  - library list/detail
+- complete auth context:
+  - login
+  - register
+  - logout
+  - `/accounts/me/` bootstrap
+  - token refresh retry
+- add route protection for product pages
+- replace static dashboard content with live analytics and user data
+- add minimum functional pages for:
+  - library list
+  - library detail
   - upload wizard
   - grounded Q&A
-  - scholar profile/reviews
+  - scholar profile
   - institute overview
-- Keep the existing visual language and avoid major UI churn.
+- keep the current visual language and RTL-first layout direction
 
-## Step 11: Deployment and docs
+### 4. Deployment/runtime consolidation
 
-- Update backend production settings and env examples.
-- Add/update:
-  - gunicorn config
-  - systemd units
-  - nginx site template
-  - exact VPS deployment steps for `/home/fg/library-platform`
+- add gunicorn config for backend production runs
+- update frontend production config for a clean API base strategy
+- create or update:
+  - `infra/systemd/library-backend.service`
+  - `infra/systemd/library-celery.service`
+  - `infra/systemd/library-celerybeat.service`
+  - `infra/systemd/library-frontend.service`
+- update nginx template to proxy:
+  - `/` to Next.js
+  - `/api/` and `/admin/` to Django
+  - static/media directly where appropriate
+- document exact VPS steps for `/home/fg/library-platform`
 
-## Step 12: Tests
+### 5. Tests and verification
 
-- Add focused tests for:
-  - auth registration/login/me
-  - institute-scoped access
-  - book visibility
+- add focused backend tests for:
+  - registration/login/me
+  - institute-scoped membership visibility
+  - book creation and visibility
   - ingestion job creation
-  - safe Q&A insufficient-support behavior
+  - safe insufficient-support Q&A
   - provider selection hierarchy
+- run the checks that are feasible in the current environment and record any remaining blockers

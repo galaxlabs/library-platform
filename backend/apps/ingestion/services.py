@@ -32,8 +32,8 @@ def create_ingestion_job(*, book: Book, initiated_by) -> UploadSession:
         session = UploadSession.objects.create(
             book=book,
             initiated_by=initiated_by,
-            status='queued',
-            current_stage='queued',
+            status='uploaded',
+            current_stage='file_saved',
             confirmation_snapshot={
                 'book_public_id': str(book.public_id),
                 'title': book.title,
@@ -53,6 +53,13 @@ def create_ingestion_job(*, book: Book, initiated_by) -> UploadSession:
                 stage=stage,
                 defaults={'status': 'pending'},
             )
+    return session
+
+
+def enqueue_ingestion_job(session: UploadSession) -> UploadSession:
+    session.status = 'queued'
+    session.current_stage = 'file_saved'
+    session.save(update_fields=['status', 'current_stage', 'updated_at'])
     return session
 
 

@@ -3,9 +3,9 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
-import axios from 'axios';
 
 import LanguageSwitcher from './LanguageSwitcher';
+import { useAuth } from '../contexts/AuthContext';
 import { TranslationBundle, defaultLocale } from '../lib/i18n';
 
 type AuthCardProps = {
@@ -55,6 +55,7 @@ export function LoginCard({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const { login } = useAuth();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -62,15 +63,7 @@ export function LoginCard({
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/login/`,
-        { email, password }
-      );
-
-      const { tokens, user } = response.data;
-      localStorage.setItem('access_token', tokens.access);
-      localStorage.setItem('refresh_token', tokens.refresh);
-      localStorage.setItem('user', JSON.stringify(user));
+      await login(email, password);
       router.push('/dashboard');
     } catch (err: any) {
       setError(getApiErrorMessage(err, copy.loginError));
@@ -227,6 +220,7 @@ export function RegisterCard({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const { register } = useAuth();
 
   const loginHref =
     locale === defaultLocale ? '/login' : `/${locale}/login`;
@@ -287,23 +281,15 @@ export function RegisterCard({
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/register/`,
-        {
-          email,
-          full_name: fullName,
-          arabic_name: arabicName,
-          phone,
-          preferred_lang_pair: preferredLangPair,
-          password,
-          password_confirm: passwordConfirm,
-        }
-      );
-
-      const { tokens, user } = response.data;
-      localStorage.setItem('access_token', tokens.access);
-      localStorage.setItem('refresh_token', tokens.refresh);
-      localStorage.setItem('user', JSON.stringify(user));
+      await register({
+        email,
+        full_name: fullName,
+        arabic_name: arabicName,
+        phone,
+        preferred_lang_pair: preferredLangPair,
+        password,
+        password_confirm: passwordConfirm,
+      });
       router.push('/dashboard');
     } catch (err: any) {
       setError(

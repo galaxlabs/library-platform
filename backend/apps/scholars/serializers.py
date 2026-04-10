@@ -68,6 +68,7 @@ class ScholarApplicationSerializer(serializers.ModelSerializer):
 class ScholarReviewSerializer(serializers.ModelSerializer):
     answer_public_id = serializers.UUIDField(write_only=True, required=True)
     scholar_name = serializers.CharField(source='scholar.full_name', read_only=True)
+    answer_question = serializers.CharField(source='answer.query.question', read_only=True)
 
     class Meta:
         model = ScholarReview
@@ -77,6 +78,7 @@ class ScholarReviewSerializer(serializers.ModelSerializer):
             'scholar',
             'scholar_name',
             'answer',
+            'answer_question',
             'decision',
             'commentary',
             'evidence_notes',

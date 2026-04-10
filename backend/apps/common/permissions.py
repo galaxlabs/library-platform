@@ -10,6 +10,21 @@ def get_active_memberships(user):
     )
 
 
+def get_user_institute_ids(user):
+    if not user or not user.is_authenticated:
+        return []
+    return list(get_active_memberships(user).values_list("institute_id", flat=True).distinct())
+
+
+def get_primary_institute(user):
+    if not user or not user.is_authenticated:
+        return None
+    if getattr(user, "institute_id", None):
+        return user.institute
+    membership = get_active_memberships(user).first()
+    return membership.institute if membership else None
+
+
 def has_institute_role(user, institute=None, roles=None):
     if not user or not user.is_authenticated:
         return False
@@ -23,6 +38,34 @@ def has_institute_role(user, institute=None, roles=None):
     if roles:
         memberships = memberships.filter(role__in=roles)
     return memberships.exists()
+
+
+def can_access_institute(user, institute):
+    if not institute:
+        return False
+    if not user or not user.is_authenticated:
+        return False
+    if user.is_staff or user.is_superuser:
+        return True
+    if getattr(institute, "admin_id", None) == user.id:
+        return True
+    return has_institute_role(user, institute=institute)
+
+
+def can_manage_institute(user, institute):
+    if not institute:
+        return False
+    if not user or not user.is_authenticated:
+        return False
+    if user.is_staff or user.is_superuser:
+        return True
+    if getattr(institute, "admin_id", None) == user.id:
+        return True
+    return has_institute_role(
+        user,
+        institute=institute,
+        roles={"platform_admin", "institute_admin"},
+    )
 
 
 class IsAdmin(permissions.BasePermission):
@@ -48,11 +91,8 @@ class IsInstituteAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-        return has_institute_role(
-            request.user,
-            institute=getattr(request.user, 'institute', None),
-            roles={'platform_admin', 'institute_admin'},
-        )
+        institute = get_primary_institute(request.user)
+        return can_manage_institute(request.user, institute)
 
 
 class IsTeacher(permissions.BasePermission):

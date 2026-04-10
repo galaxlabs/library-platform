@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { FormEvent, useEffect, useState } from 'react';
 
-import api from '../lib/api';
+import api, { extractResults } from '../lib/api';
+import { StatusBadge } from './ui';
 
 type Source = {
   id: string | number;
@@ -16,11 +17,12 @@ type Source = {
 type Answer = {
   id: string | number;
   direct_answer: string;
-  detailed_explanation: string;
+  explanation: string;
   simplified_explanation: string;
   verification_status: string;
   confidence: string;
-  sources: Source[];
+  references: Source[];
+  examples: Array<{ type: string; text: string }>;
   created_at: string;
 };
 
@@ -38,6 +40,9 @@ export default function ChatWorkspace() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState('');
   const [needsLogin, setNeedsLogin] = useState(false);
+  const [scope, setScope] = useState('general');
+  const [subject, setSubject] = useState('');
+  const [bookPublicId, setBookPublicId] = useState('');
 
   useEffect(() => {
     const loadHistory = async () => {
@@ -50,13 +55,13 @@ export default function ChatWorkspace() {
 
       try {
         const response = await api.get('/qa/chat/');
-        setItems(response.data);
+        setItems(extractResults<QueryItem>(response.data));
       } catch (err: any) {
         if (err?.response?.status === 401) {
           setNeedsLogin(true);
           setError('Please sign in first to use chat.');
         } else {
-          setError(err?.response?.data?.detail || 'Could not load chat history.');
+          setError(err?.response?.data?.error?.message || 'Could not load chat history.');
         }
       } finally {
         setInitialLoading(false);
@@ -82,6 +87,9 @@ export default function ChatWorkspace() {
       const response = await api.post('/qa/chat/', {
         question: question.trim(),
         language_pair: 'ar-en',
+        scope,
+        subject: subject.trim(),
+        book_public_id: bookPublicId.trim() || undefined,
       });
 
       setItems((current) => [response.data, ...current]);
@@ -91,7 +99,7 @@ export default function ChatWorkspace() {
         setNeedsLogin(true);
         setError('Please sign in first to use chat.');
       } else {
-        setError(err?.response?.data?.detail || 'Could not send your question.');
+        setError(err?.response?.data?.error?.message || 'Could not send your question.');
       }
     } finally {
       setLoading(false);
@@ -105,10 +113,10 @@ export default function ChatWorkspace() {
           Ask AI
         </p>
         <h2 className="mt-3 text-3xl font-bold tracking-[-0.05em] text-slate-950">
-          Study chat
+          Grounded Q&A
         </h2>
         <p className="mt-3 text-sm leading-7 text-slate-600">
-          Ask a clear question about a lesson, a rule, or a book. The system will try to return a simple answer with matching source passages.
+          Ask a clear question about a lesson, rule, or book. Answers stay tied to stored references, and the UI makes insufficient evidence obvious instead of pretending certainty.
         </p>
 
         {needsLogin ? (
@@ -134,6 +142,32 @@ export default function ChatWorkspace() {
           </div>
         ) : (
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <select
+              value={scope}
+              onChange={(event) => setScope(event.target.value)}
+              className="h-12 rounded-[1rem] border border-slate-200 bg-white px-4 text-sm text-slate-900"
+            >
+              <option value="general">General scope</option>
+              <option value="subject">Subject scope</option>
+              <option value="book">Book scope</option>
+              <option value="institute">Institute scope</option>
+            </select>
+            <input
+              value={subject}
+              onChange={(event) => setSubject(event.target.value)}
+              placeholder="Optional subject"
+              className="h-12 rounded-[1rem] border border-slate-200 bg-white px-4 text-sm text-slate-900"
+            />
+          </div>
+          {scope === 'book' ? (
+            <input
+              value={bookPublicId}
+              onChange={(event) => setBookPublicId(event.target.value)}
+              placeholder="Book public ID"
+              className="h-12 w-full rounded-[1rem] border border-slate-200 bg-white px-4 text-sm text-slate-900"
+            />
+          ) : null}
           <textarea
             value={question}
             onChange={(event) => setQuestion(event.target.value)}
@@ -211,17 +245,29 @@ export default function ChatWorkspace() {
                 </div>
 
                 <div className="mt-5 flex flex-wrap gap-2">
-                  <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
+                  <StatusBadge tone={item.latest_answer.verification_status === 'needs_review' ? 'warning' : 'success'}>
                     {item.latest_answer.verification_status}
-                  </span>
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                  </StatusBadge>
+                  <StatusBadge>
                     Confidence: {item.latest_answer.confidence}
-                  </span>
+                  </StatusBadge>
                 </div>
 
-                {item.latest_answer.sources.length > 0 ? (
+                <div className="mt-5 rounded-[1.3rem] border border-slate-200 bg-[rgba(247,244,238,0.9)] p-4">
+                  <p className="text-sm font-semibold text-slate-900">Explanation</p>
+                  <p className="mt-2 whitespace-pre-line text-sm leading-7 text-slate-600">
+                    {item.latest_answer.explanation}
+                  </p>
+                  {item.latest_answer.simplified_explanation ? (
+                    <p className="mt-3 text-sm leading-7 text-slate-700">
+                      {item.latest_answer.simplified_explanation}
+                    </p>
+                  ) : null}
+                </div>
+
+                {item.latest_answer.references.length > 0 ? (
                   <div className="mt-5 grid gap-3">
-                    {item.latest_answer.sources.map((source) => (
+                    {item.latest_answer.references.map((source) => (
                       <div
                         key={source.id}
                         className="rounded-[1.3rem] border border-slate-200 bg-[rgba(247,244,238,0.9)] p-4"
@@ -233,6 +279,17 @@ export default function ChatWorkspace() {
                         <p className="mt-2 text-sm leading-6 text-slate-600">
                           {source.excerpt}
                         </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+
+                {item.latest_answer.examples?.length ? (
+                  <div className="mt-5 grid gap-3">
+                    {item.latest_answer.examples.map((example, index) => (
+                      <div key={`${item.id}-${index}`} className="rounded-[1.3rem] border border-slate-200 bg-white p-4">
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">{example.type}</p>
+                        <p className="mt-2 text-sm leading-7 text-slate-600">{example.text}</p>
                       </div>
                     ))}
                   </div>

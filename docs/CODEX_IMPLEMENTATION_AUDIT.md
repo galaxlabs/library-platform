@@ -1,113 +1,64 @@
 # Codex Implementation Audit
 
-Date: 2026-04-09
+Date: 2026-04-09  
 Repository: `/home/fg/library-platform`
 
-## Current State Summary
+## Snapshot
 
-The repository already contains the intended product shape:
+The repository already had a real v1 skeleton before implementation work started:
 
-- Django backend with modular apps for accounts, institutes, scholars, library, ingestion, knowledge, skills, Q&A, providers, analytics, and common utilities.
-- Next.js frontend with a solid visual shell, auth pages, dashboard shell, and chat shell.
-- Basic deployment assets under `infra/`.
+- backend apps, models, and migrations existed for all target domains
+- DRF root routing was already mounted under `/api/v1/`
+- the AI provider runtime had already been moved into `services.py`
+- the ingestion app already had a practical first-pass extraction pipeline
+- the Q&A app already had DB-backed retrieval and structured answer persistence
 
-The repo is not yet wired end to end. The strongest completed area is authentication. Most domain apps have models and migrations, but almost all runtime layers are still missing.
+The actual missing runtime was narrower than the original brief implied. The biggest unfinished areas were shared scoping rules, frontend session wiring, product page wiring, and VPS deployment consolidation.
 
-## What Is Already Good
+## What Was Missing Or Weak
 
-- Custom user model exists and basic register/login endpoints already issue JWTs.
-- Core domain models already exist for institutes, scholars, books, chunks, references, upload sessions, skill packs, and Q&A logs.
-- Settings already include DRF, JWT, Celery, Redis, CORS, Whitenoise, and production host defaults.
-- Frontend design direction is coherent, custom, and usable as a base for v1.
-- Deployment intent is already separate from Frappe/bench and points at `library.digigalaxy.cloud`.
+### Backend
 
-## Main Gaps Found
+- auth worked, but user reads were too open for non-admin users and frontend-friendly `/me` consumption was still thin
+- institute detail/list endpoints existed, but object scoping and manage-vs-read rules needed tightening
+- scholar profile and review endpoints existed, but there was no queue surface for review-ready answers
+- library upload worked, but the metadata contract was still too loose for a mandatory metadata form
+- ingestion existed, but the handoff between “book uploaded” and “job queued” needed a clearer runtime step
+- provider health/selection needed better institute resolution and safer request error wrapping
+- analytics counters existed, but the dashboard payload was too minimal for a practical frontend overview
 
-### Backend runtime gaps
+### Frontend
 
-- `institutes`, `scholars`, `library`, `ingestion`, `knowledge`, `skills`, `analytics`, and `ai_providers` have empty `urls.py`.
-- Most apps are missing `serializers.py`, `views.py`, `services.py`, and `tasks.py`.
-- `qa_engine` has only a small keyword-match chat flow and no structured grounded-answer pipeline.
-- AI provider adapters are defined inside `models.py` and all runtime methods are still `pass`.
-- Role and institute permission helpers exist but are incomplete and use brittle assumptions.
-- API responses do not yet have a consistent error shape.
+- the visual shell was good, but auth context was still a stub
+- login/register were storing tokens directly without updating app state
+- dashboard, library, upload, institute, and scholar flows were not connected to live APIs
+- the Q&A page showed only a thin chat history instead of the structured grounded-answer object
+- route protection and workspace navigation across product pages were missing
 
-### Data model gaps
+### Deployment
 
-- `knowledge`, `analytics`, and `ai_providers` have models but no migrations in the repo.
-- `knowledge.KnowledgeObject` is too thin for book-linked concept/rule/example retrieval.
-- `analytics.Metric` is too minimal for meaningful event logging or dashboard counters.
-- Provider selection supports DB lookup only; system default env-backed fallback is not wired.
+- systemd units used placeholder users and paths
+- no dedicated `library-backend.service` / `library-celerybeat.service` pair existed
+- nginx config needed a clean split for frontend, `/api/`, `/admin/`, static, media, and larger PDF uploads
+- docs still described a generic server instead of the actual `/home/fg` VPS target
 
-### Ingestion gaps
+### Testing
 
-- Upload session models exist, but there is no usable API, no job orchestration service, and no Celery tasks.
-- No practical text extraction flow exists yet.
-- There is no honest OCR fallback path for scanned PDFs.
+- pytest scaffolding existed, but business-critical flow coverage was still missing
 
-### Frontend gaps
+## Implementation Direction
 
-- Auth context is still a stub and does not fetch `/me`, refresh tokens, or guard routes.
-- Dashboard is static.
-- Library, upload, scholar, and institute product flows are missing.
-- Chat UI exists, but it only targets the current thin Q&A endpoint.
-- Root layout is not yet RTL-aware or auth-provider aware.
+The safest practical path for v1 was:
 
-### Deployment/runtime gaps
+1. preserve the existing Django app boundaries and service-layer work already present
+2. strengthen permissions, scoping, and API contracts instead of rewriting working models
+3. wire the frontend to the existing DRF endpoints with small contract improvements
+4. keep ingestion honest:
+   - extract text when possible
+   - mark OCR-needed PDFs clearly
+   - never fabricate source-grounded content
+5. keep Q&A DB-backed and traceable, not “fantasy RAG”
 
-- Existing systemd files use placeholder usernames and paths instead of `/home/fg`.
-- Nginx config is close, but needs consolidation around the real split:
-  - Next.js frontend
-  - Django API/admin/static/media
-  - large PDF uploads
-  - no interference with the VPS's existing Frappe setup
-- Deployment docs are generic and not yet exact for this VPS target.
+## Schema Notes
 
-### Testing gaps
-
-- Test scaffolding exists, but critical business-flow coverage is still missing.
-
-## Local Worktree Notes
-
-The worktree is already dirty before this implementation:
-
-- Modified:
-  - `backend/apps/qa_engine/urls.py`
-  - `frontend/components/AuthCard.tsx`
-  - `frontend/components/DashboardStudio.tsx`
-  - `frontend/components/PanelShell.tsx`
-- Untracked:
-  - `URDU_APP_INTRODUCTION.md`
-  - `backend/apps/qa_engine/serializers.py`
-  - `backend/apps/qa_engine/views.py`
-  - `frontend/app/chat/`
-  - `frontend/components/ChatWorkspace.tsx`
-
-Those files should be treated carefully and not blindly reverted.
-
-## Practical V1 Recommendation
-
-Build v1 around the existing models and keep the implementation honest:
-
-- Use DB-backed retrieval over `BookChunk` and `BookReference`.
-- Return safe insufficient-evidence responses when grounding is weak.
-- Implement upload plus metadata plus ingestion lifecycle first.
-- Keep scholar review and institute permissions minimal but real.
-- Expose enough frontend routes to make the main user journey runnable:
-  - auth
-  - dashboard
-  - library browse/detail
-  - upload
-  - grounded Q&A
-  - scholar basics
-  - institute basics
-
-## Expected Schema Work
-
-New migrations are likely necessary for:
-
-- `ai_providers`
-- `knowledge`
-- `analytics`
-
-Additional small schema changes may be needed only if the current models cannot cleanly support the required v1 runtime.
+At audit time, migrations already existed for all backend apps, so large schema redesign was not justified. The focus should remain on runtime completion, not migration churn, unless a later test reveals a real schema blocker.

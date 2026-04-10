@@ -2,7 +2,7 @@ from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.common.permissions import has_institute_role
+from apps.common.permissions import can_manage_institute, get_primary_institute
 
 from .models import AIProvider
 from .serializers import AIProviderCreateSerializer, AIProviderSerializer
@@ -32,11 +32,7 @@ class AIProviderListCreateView(generics.ListCreateAPIView):
         institute = serializer.validated_data.get('institute')
         if scope == 'system' and not (self.request.user.is_staff or self.request.user.is_superuser):
             raise permissions.PermissionDenied('Only platform admins can create system providers.')
-        if scope == 'institute' and institute and not has_institute_role(
-            self.request.user,
-            institute=institute,
-            roles={'platform_admin', 'institute_admin'},
-        ):
+        if scope == 'institute' and institute and not can_manage_institute(self.request.user, institute):
             raise permissions.PermissionDenied('You do not manage this institute.')
         serializer.save()
 
@@ -46,16 +42,17 @@ class ProviderHealthView(APIView):
 
     def get(self, request):
         provider_name = request.query_params.get('provider', 'ollama')
+        institute = get_primary_institute(request.user)
         try:
             resolved = resolve_provider(
                 provider_name,
                 user=request.user,
-                institute=getattr(request.user, 'institute', None),
+                institute=institute,
             )
             adapter = get_adapter(
                 provider_name,
                 user=request.user,
-                institute=getattr(request.user, 'institute', None),
+                institute=institute,
             )
             health = adapter.health_check()
             health['scope'] = resolved.scope
